@@ -50,7 +50,7 @@ Item {
 
         onClicked: {
             if (root.command !== "")
-                Quickshell.execDetached(["/bin/sh", "-c".root.command]);
+                Quickshell.execDetached(["/bin/sh", "-c", root.command]);
 
             root.clicked();
         }

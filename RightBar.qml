@@ -5,14 +5,72 @@ Slide {
     Matugen {
         id: color
     }
-    background: color.primary_a
+    background: color.background_a
     edge: "right"
-    slideWidth: 80
+    slideWidth: 300
 
-    Clock {
-        color: color.on_primary
+    Column {
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.margins: 10
+        Clock {
+            color: color.on_background
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.margins: 10
+        }
+        Row {
+            IconButton {
+                icon: "system-shutdown"
+                onClicked: {
+                    sessionConfirmText.text = "Shutdown?";
+                    sessionConfirm.visible = true;
+                    sessionConfirm.command = "systemctl poweroff";
+                }
+            }
+            IconButton {
+                icon: "system-reboot"
+                onClicked: {
+                    sessionConfirmText.text = "Reboot?";
+                    sessionConfirm.visible = true;
+                    sessionConfirm.command = "systemctl reboot";
+                }
+            }
+            IconButton {
+                icon: "system-log-out"
+                onClicked: {
+                    sessionConfirmText.text = "Logout?";
+                    sessionConfirm.visible = true;
+                    sessionConfirm.command = "hyprshutdown";
+                }
+            }
+            IconButton {
+                icon: "system-suspend"
+                command: "hyprlock & disown;sleep 0.5;systemctl suspend"
+            }
+            IconButton {
+                icon: "system-lock-screen"
+                command: "hyprlock & disown"
+            }
+        }
+        Row {
+            id: sessionConfirm
+            visible: false
+            property string command: ""
+            Text {
+                id: sessionConfirmText
+                color: color.on_background
+            }
+            IconButton {
+                command: sessionConfirm.command
+                icon: "dialog-ok"
+                onClicked: {
+                    sessionConfirm.visible = false;
+                }
+            }
+            IconButton {
+                icon: "dialog-cancel"
+                onClicked: {
+                    sessionConfirm.visible = false;
+                }
+            }
+        }
     }
-    IconButton {}
 }
