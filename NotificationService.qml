@@ -11,6 +11,8 @@ NotificationServer {
     persistenceSupported: false
 
     onNotification: notification => {
-        notification.tracked = true
+        notification.tracked = true;
+
+        console.log(notification.appName, notification.summary, notification.body);
     }
 }
