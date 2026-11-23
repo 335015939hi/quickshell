@@ -11,16 +11,30 @@ Slide {
     edge: "right"
     slideWidth: 500
     focusable: true
+    property string activeView: "default"
 
     onHide: function () {
-        sessionConfirm.visible = false;
-        viewDefault.visible = true;
-        viewNetwork.visible = false;
+        sessionConfirm.open = false;
+        root.activeView = "default";
     }
 
     Item {
         id: viewDefault
         anchors.fill: parent
+        property bool active: root.activeView === "default"
+        visible: active || opacity > 0.001
+        enabled: active
+        opacity: active ? 1 : 0
+        x: active ? 0 : -20
+        z: active ? 1 : 0
+
+        Behavior on opacity {
+            NumberAnimation { duration: 210; easing.type: Easing.OutCubic }
+        }
+
+        Behavior on x {
+            NumberAnimation { duration: 230; easing.type: Easing.OutCubic }
+        }
         Column {
             anchors.horizontalCenter: parent.horizontalCenter
             Clock {
@@ -31,8 +45,7 @@ Slide {
                 IconButton {
                     icon: "network-manager"
                     onClicked: {
-                        viewDefault.visible = false;
-                        viewNetwork.visible = true;
+                        root.activeView = "network";
                     }
                 }
             }
@@ -42,8 +55,21 @@ Slide {
             anchors.horizontalCenter: parent.horizontalCenter
             Row {
                 id: sessionConfirm
-                visible: false
                 property string command: ""
+                property bool open: false
+                visible: open || opacity > 0.001
+                enabled: open
+                opacity: open ? 1 : 0
+                scale: open ? 1 : 0.96
+                transformOrigin: Item.Center
+
+                Behavior on opacity {
+                    NumberAnimation { duration: 160; easing.type: Easing.OutCubic }
+                }
+
+                Behavior on scale {
+                    NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+                }
                 Text {
                     id: sessionConfirmText
                     anchors.verticalCenter: parent.verticalCenter
@@ -53,12 +79,14 @@ Slide {
                     command: sessionConfirm.command
                     icon: "dialog-ok"
                     onClicked: {
-                        sessionConfirm.visible = false;
+                        sessionConfirm.open = false;
                     }
                 }
                 IconButton {
                     icon: "dialog-cancel"
-                    onClicked: {}
+                    onClicked: {
+                        sessionConfirm.open = false;
+                    }
                 }
             }
             Row {
@@ -66,7 +94,7 @@ Slide {
                     icon: "system-shutdown"
                     onClicked: {
                         sessionConfirmText.text = "Shutdown?";
-                        sessionConfirm.visible = true;
+                        sessionConfirm.open = true;
                         sessionConfirm.command = "systemctl poweroff";
                     }
                 }
@@ -74,7 +102,7 @@ Slide {
                     icon: "system-reboot"
                     onClicked: {
                         sessionConfirmText.text = "Reboot?";
-                        sessionConfirm.visible = true;
+                        sessionConfirm.open = true;
                         sessionConfirm.command = "systemctl reboot";
                     }
                 }
@@ -82,7 +110,7 @@ Slide {
                     icon: "system-log-out"
                     onClicked: {
                         sessionConfirmText.text = "Logout?";
-                        sessionConfirm.visible = true;
+                        sessionConfirm.open = true;
                         sessionConfirm.command = "hyprshutdown";
                     }
                 }
@@ -101,12 +129,24 @@ Slide {
     Column {
         id: viewNetwork
         anchors.fill: parent
-        visible: false
+        property bool active: root.activeView === "network"
+        visible: active || opacity > 0.001
+        enabled: active
+        opacity: active ? 1 : 0
+        x: active ? 0 : 24
+        z: active ? 1 : 0
+
+        Behavior on opacity {
+            NumberAnimation { duration: 210; easing.type: Easing.OutCubic }
+        }
+
+        Behavior on x {
+            NumberAnimation { duration: 230; easing.type: Easing.OutCubic }
+        }
         IconButton {
             icon: "go-previous"
             onClicked: function () {
-                viewNetwork.visible = false;
-                viewDefault.visible = true;
+                root.activeView = "default";
             }
         }
         NetworkWidget {
