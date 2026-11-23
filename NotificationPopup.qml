@@ -46,6 +46,8 @@ Item {
         height: root.implicitHeight
         x: root.closing || !root.entered ? 28 : 0
         opacity: root.closing || !root.entered ? 0 : 1
+        scale: root.closing || !root.entered ? 0.97 : 1
+        transformOrigin: Item.Center
 
         Behavior on x {
             NumberAnimation {
@@ -55,6 +57,13 @@ Item {
         }
 
         Behavior on opacity {
+            NumberAnimation {
+                duration: root.slideDuration
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Behavior on scale {
             NumberAnimation {
                 duration: root.slideDuration
                 easing.type: Easing.OutCubic
