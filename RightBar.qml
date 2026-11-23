@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 
 Slide {
+    id: root
     Matugen {
         id: color
     }
@@ -17,8 +18,32 @@ Slide {
         anchors.horizontalCenter: parent.horizontalCenter
         Clock {
             color: color.on_background
-            anchors.horizontalCenter: parent.horizontalCenter
             anchors.margins: 10
+        }
+    }
+    Column {
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        Row {
+            id: sessionConfirm
+            visible: false
+            property string command: ""
+            Text {
+                id: sessionConfirmText
+                anchors.verticalCenter: parent.verticalCenter
+                color: color.on_background
+            }
+            IconButton {
+                command: sessionConfirm.command
+                icon: "dialog-ok"
+                onClicked: {
+                    sessionConfirm.visible = false;
+                }
+            }
+            IconButton {
+                icon: "dialog-cancel"
+                onClicked: {}
+            }
         }
         Row {
             IconButton {
@@ -52,28 +77,6 @@ Slide {
             IconButton {
                 icon: "system-lock-screen"
                 command: "hyprlock & disown"
-            }
-        }
-        Row {
-            id: sessionConfirm
-            visible: false
-            property string command: ""
-            Text {
-                id: sessionConfirmText
-                color: color.on_background
-            }
-            IconButton {
-                command: sessionConfirm.command
-                icon: "dialog-ok"
-                onClicked: {
-                    sessionConfirm.visible = false;
-                }
-            }
-            IconButton {
-                icon: "dialog-cancel"
-                onClicked: {
-                    sessionConfirm.visible = false;
-                }
             }
         }
     }
