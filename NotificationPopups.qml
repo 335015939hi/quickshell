@@ -9,6 +9,10 @@ PanelWindow {
     property color background: "#303030"
     property color foreground: "#ffffff"
 
+    readonly property int notificationCount: root.notificationModel
+        ? root.notificationModel.values.length
+        : 0
+
     WlrLayershell.namespace: "qs-notifications"
 
     anchors {
@@ -24,7 +28,7 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
 
-    visible: root.notificationModel && root.notificationModel.count > 0
+    visible: root.notificationCount > 0
 
     implicitWidth: 360
     implicitHeight: popupColumn.implicitHeight
