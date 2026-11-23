@@ -102,13 +102,12 @@ PanelWindow {
         height: implicitHeight
         spacing: 0
 
-        // Animate the remaining notifications when one is inserted or removed.
-        // Their heights themselves stay static during the transition.
+        // Track changing layout positions without restarting the animation
+        // from a new easing curve whenever the stack changes again.
         move: Transition {
-            NumberAnimation {
+            SmoothedAnimation {
                 properties: "y"
-                duration: 200
-                easing.type: Easing.OutCubic
+                velocity: 600
             }
         }
     }
