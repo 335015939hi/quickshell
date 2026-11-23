@@ -9,9 +9,8 @@ PanelWindow {
     property color background: "#303030"
     property color foreground: "#ffffff"
 
-    // All notification cards are Items inside this one PanelWindow.
-    // Keep a separate list so removed notifications can finish their
-    // slide-out animation before their popup Item is destroyed.
+    // One list of notification content Items inside this one PanelWindow.
+    // Entries stay here until their exit animation has finished.
     property var popupItems: []
 
     WlrLayershell.namespace: "qs-notifications"
@@ -30,16 +29,25 @@ PanelWindow {
     color: "transparent"
     visible: root.popupItems.length > 0
 
-    // The window grows and shrinks with the Column's laid-out children.
-    // Using implicit dimensions keeps this compatible with newer Quickshell.
     implicitWidth: 360
-    implicitHeight: popupColumn.implicitHeight
+    implicitHeight: popupColumn.implicitHeight + 28
 
     Behavior on implicitHeight {
         NumberAnimation {
             duration: 220
             easing.type: Easing.OutCubic
         }
+    }
+
+    // This is the only notification background. All notification content
+    // is rendered inside it, so the stack reads as one continuous surface.
+    Rectangle {
+        anchors.fill: popupColumn
+        anchors.margins: -0
+        radius: 16
+        color: root.background
+        border.width: 1
+        border.color: Qt.lighter(root.background, 1.2)
     }
 
     function findPopup(notification) {
@@ -60,7 +68,7 @@ PanelWindow {
         })
 
         if (!popup) {
-            console.warn("Failed to create notification popup")
+            console.warn("Failed to create notification content")
             return
         }
 
@@ -88,18 +96,17 @@ PanelWindow {
 
         NotificationPopup {
             width: root.implicitWidth
-            background: root.background
             foreground: root.foreground
         }
     }
 
-    // This Column is the single layout root for every notification card.
-    // Its implicitHeight includes every popup and the spacing between them.
     Column {
         id: popupColumn
 
-        width: root.implicitWidth
-        spacing: 10
+        x: 0
+        y: 0
+        width: root.implicitWidth - 2
+        spacing: 0
     }
 
     Connections {
