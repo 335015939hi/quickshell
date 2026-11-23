@@ -9,8 +9,9 @@ PanelWindow {
     property color background: "#303030"
     property color foreground: "#ffffff"
 
-    // The displayed list is intentionally separate from trackedNotifications:
-    // entries remain here long enough to finish their exit animation.
+    // All notification cards are Items inside this one PanelWindow.
+    // Keep a separate list so removed notifications can finish their
+    // slide-out animation before their popup Item is destroyed.
     property var popupItems: []
 
     WlrLayershell.namespace: "qs-notifications"
@@ -27,13 +28,19 @@ PanelWindow {
 
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
-
     visible: root.popupItems.length > 0
 
-    // QsWindow sizes itself from its implicit dimensions. Setting width/height
-    // directly is deprecated in newer Quickshell versions.
+    // The window grows and shrinks with the Column's laid-out children.
+    // Using implicit dimensions keeps this compatible with newer Quickshell.
     implicitWidth: 360
     implicitHeight: popupColumn.implicitHeight
+
+    Behavior on implicitHeight {
+        NumberAnimation {
+            duration: 220
+            easing.type: Easing.OutCubic
+        }
+    }
 
     function findPopup(notification) {
         for (const entry of root.popupItems) {
@@ -86,6 +93,8 @@ PanelWindow {
         }
     }
 
+    // This Column is the single layout root for every notification card.
+    // Its implicitHeight includes every popup and the spacing between them.
     Column {
         id: popupColumn
 
