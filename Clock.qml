@@ -5,8 +5,9 @@ import QtQuick
 Text {
     property string format: "hh:mm:ss"
     property date currentTime: new Date()
+    property int textSize: 16
     font {
-        pixelSize: 16
+        pixelSize: textSize
         family: "Cormorant Garamond"
     }
     text: Qt.formatDateTime(currentTime, format)
