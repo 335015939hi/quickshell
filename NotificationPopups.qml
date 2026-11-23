@@ -30,7 +30,7 @@ PanelWindow {
     visible: root.popupItems.length > 0
 
     implicitWidth: 360
-    implicitHeight: popupColumn.implicitHeight + 28
+    implicitHeight: popupColumn.implicitHeight
 
     Behavior on implicitHeight {
         NumberAnimation {
@@ -43,7 +43,6 @@ PanelWindow {
     // is rendered inside it, so the stack reads as one continuous surface.
     Rectangle {
         anchors.fill: popupColumn
-        anchors.margins: -0
         radius: 16
         color: root.background
         border.width: 1
@@ -103,9 +102,8 @@ PanelWindow {
     Column {
         id: popupColumn
 
-        x: 0
-        y: 0
-        width: root.implicitWidth - 2
+        width: root.implicitWidth
+        height: implicitHeight
         spacing: 0
     }
 
