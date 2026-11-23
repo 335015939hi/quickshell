@@ -30,10 +30,10 @@ PanelWindow {
 
     visible: root.popupItems.length > 0
 
+    // QsWindow sizes itself from its implicit dimensions. Setting width/height
+    // directly is deprecated in newer Quickshell versions.
     implicitWidth: 360
     implicitHeight: popupColumn.implicitHeight
-    width: implicitWidth
-    height: implicitHeight
 
     function findPopup(notification) {
         for (const entry of root.popupItems) {
@@ -80,7 +80,7 @@ PanelWindow {
         id: popupComponent
 
         NotificationPopup {
-            width: root.width
+            width: root.implicitWidth
             background: root.background
             foreground: root.foreground
         }
@@ -89,7 +89,7 @@ PanelWindow {
     Column {
         id: popupColumn
 
-        width: root.width
+        width: root.implicitWidth
         spacing: 10
     }
 
