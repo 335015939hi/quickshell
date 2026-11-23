@@ -98,12 +98,19 @@ Slide {
         }
     }
 
-    Item {
+    Column {
         id: viewNetwork
         anchors.fill: parent
         visible: false
+        IconButton {
+            icon: "go-previous"
+            onClicked: function () {
+                viewNetwork.visible = false;
+                viewDefault.visible = true;
+            }
+        }
         NetworkWidget {
-            anchors.fill: parent
+            width: parent.width
             anchors.margins: 15
             cardColor: color.surface_a
             innerColor: color.surface_container_a
