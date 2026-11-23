@@ -21,24 +21,26 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: root.cornerRadius
-        color: mouseArea.containsMouse ? root.hoverColor : "transparent"
+        color: root.hoverColor
+        opacity: mouseArea.containsMouse ? 1 : 0
 
-        Behavior on color {
-            ColorAnimation {
-                duration: 120
-            }
+        Behavior on opacity {
+            NumberAnimation { duration: 130; easing.type: Easing.OutCubic }
         }
     }
 
     Image {
         anchors.centerIn: parent
-
         width: root.iconSize
         height: root.iconSize
-
         source: Quickshell.iconPath(root.icon)
         sourceSize: Qt.size(root.iconSize, root.iconSize)
         fillMode: Image.PreserveAspectFit
+        scale: mouseArea.pressed ? 0.88 : mouseArea.containsMouse ? 1.08 : 1
+
+        Behavior on scale {
+            NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+        }
     }
 
     MouseArea {
