@@ -22,6 +22,7 @@ Item {
     property bool showEthernet: true
     property bool showIpAddresses: true
     property int networkListHeight: 220
+    property int animationDuration: 200
 
     // Internal connection prompt state
     property var pendingNetwork: null
@@ -465,12 +466,23 @@ Item {
 
         // Global Wi-Fi radio switch
         Rectangle {
-            visible: root.showWifi
+            visible: root.showWifi || opacity > 0.001
             width: root.width
             radius: root.cornerRadius
             color: root.cardColor
             implicitHeight: wifiControl.implicitHeight + 24
-            height: implicitHeight
+            height: root.showWifi ? implicitHeight : 0
+            opacity: root.showWifi ? 1 : 0
+            clip: true
+            enabled: root.showWifi
+
+            Behavior on height {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
+
+            Behavior on opacity {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
 
             Column {
                 id: wifiControl
@@ -503,11 +515,23 @@ Item {
                         color: Networking.wifiEnabled ? root.accentColor : root.innerColor
                         opacity: Networking.wifiHardwareEnabled ? 1.0 : 0.45
 
+                        Behavior on color {
+                            ColorAnimation { duration: 160; easing.type: Easing.OutCubic }
+                        }
+
+                        Behavior on opacity {
+                            NumberAnimation { duration: 160; easing.type: Easing.OutCubic }
+                        }
+
                         Text {
                             anchors.centerIn: parent
                             text: Networking.wifiEnabled ? "On" : "Off"
                             color: Networking.wifiEnabled ? "#171925" : root.textColor
                             font.pixelSize: 12
+
+                            Behavior on color {
+                                ColorAnimation { duration: 160; easing.type: Easing.OutCubic }
+                            }
                             font.weight: Font.DemiBold
                         }
 
@@ -547,12 +571,24 @@ Item {
                 required property var modelData
                 property string ipAddresses: ""
 
-                visible: root.showEthernet && modelData.type === DeviceType.Wired
+                property bool active: root.showEthernet && modelData.type === DeviceType.Wired
+                visible: active || opacity > 0.001
                 width: root.width
                 radius: root.cornerRadius
                 color: root.cardColor
                 implicitHeight: wiredContent.implicitHeight + 24
-                height: implicitHeight
+                height: active ? implicitHeight : 0
+                opacity: active ? 1 : 0
+                clip: true
+                enabled: active
+
+                Behavior on height {
+                    NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+                }
 
                 function disconnect() {
                     if (modelData.network)
@@ -693,7 +729,7 @@ Item {
                 Timer {
                     interval: 5000
                     repeat: true
-                    running: wiredCard.visible && root.showIpAddresses && modelData.connected
+                    running: wiredCard.active && root.showIpAddresses && modelData.connected
                     triggeredOnStart: true
                     onTriggered: wiredIpProcess.running = true
                 }
@@ -717,12 +753,24 @@ Item {
                 required property var modelData
                 property string ipAddresses: ""
 
-                visible: root.showWifi && modelData.type === DeviceType.Wifi && Networking.wifiEnabled
+                property bool active: root.showWifi && modelData.type === DeviceType.Wifi && Networking.wifiEnabled
+                visible: active || opacity > 0.001
                 width: root.width
                 radius: root.cornerRadius
                 color: root.cardColor
                 implicitHeight: wifiContent.implicitHeight + 24
-                height: implicitHeight
+                height: active ? implicitHeight : 0
+                opacity: active ? 1 : 0
+                clip: true
+                enabled: active
+
+                Behavior on height {
+                    NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+                }
 
                 Column {
                     id: wifiContent
@@ -768,7 +816,7 @@ Item {
                     }
 
                     Text {
-                        visible: wifiCard.visible && modelData.connected
+                        visible: wifiCard.active && modelData.connected
                         text: {
                             const current = modelData.networks.values.find(network => network.connected);
                             return current ? "Connected to " + current.name : "Connected";
@@ -782,11 +830,45 @@ Item {
                     ListView {
                         id: wifiList
                         width: parent.width
-                        height: wifiCard.visible ? Math.min(Math.max(contentHeight, 40), root.networkListHeight) : 0
-                        visible: wifiCard.visible
+                        height: wifiCard.active ? Math.min(Math.max(contentHeight, 40), root.networkListHeight) : 0
+                        visible: true
                         clip: true
+
+                        Behavior on height {
+                            NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+                        }
                         spacing: 3
                         model: modelData.type === DeviceType.Wifi ? modelData.networks : []
+
+                        add: Transition {
+                            ParallelAnimation {
+                                NumberAnimation {
+                                    property: "opacity"
+                                    from: 0
+                                    to: 1
+                                    duration: root.animationDuration
+                                    easing.type: Easing.OutCubic
+                                }
+                                NumberAnimation {
+                                    property: "x"
+                                    from: 14
+                                    to: 0
+                                    duration: root.animationDuration
+                                    easing.type: Easing.OutCubic
+                                }
+                            }
+                        }
+
+                        remove: Transition {
+                            ParallelAnimation {
+                                NumberAnimation { property: "opacity"; to: 0; duration: 140; easing.type: Easing.OutCubic }
+                                NumberAnimation { property: "x"; to: -10; duration: 140; easing.type: Easing.OutCubic }
+                            }
+                        }
+
+                        displaced: Transition {
+                            NumberAnimation { property: "y"; duration: 180; easing.type: Easing.OutCubic }
+                        }
 
                         delegate: Rectangle {
                             required property var modelData
@@ -912,7 +994,7 @@ Item {
                 Timer {
                     interval: 5000
                     repeat: true
-                    running: wifiCard.visible && root.showIpAddresses && modelData.connected
+                    running: wifiCard.active && root.showIpAddresses && modelData.connected
                     triggeredOnStart: true
                     onTriggered: wifiIpProcess.running = true
                 }
@@ -929,12 +1011,23 @@ Item {
 
         // Advanced IP/DNS editor. Settings are saved to the active profile.
         Rectangle {
-            visible: root.configOpen
+            visible: root.configOpen || opacity > 0.001
             width: root.width
             radius: root.cornerRadius
             color: root.cardColor
             implicitHeight: advancedContent.implicitHeight + 24
-            height: implicitHeight
+            height: root.configOpen ? implicitHeight : 0
+            opacity: root.configOpen ? 1 : 0
+            clip: true
+            enabled: root.configOpen
+
+            Behavior on height {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
+
+            Behavior on opacity {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
 
             Column {
                 id: advancedContent
@@ -1290,12 +1383,23 @@ Item {
         // Inline password prompt; it stays open until NetworkManager confirms
         // the connection or the user cancels it.
         Rectangle {
-            visible: root.passwordPromptOpen
+            visible: root.passwordPromptOpen || opacity > 0.001
             width: root.width
             radius: root.cornerRadius
             color: root.cardColor
             implicitHeight: passwordContent.implicitHeight + 24
-            height: implicitHeight
+            height: root.passwordPromptOpen ? implicitHeight : 0
+            opacity: root.passwordPromptOpen ? 1 : 0
+            clip: true
+            enabled: root.passwordPromptOpen
+
+            Behavior on height {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
+
+            Behavior on opacity {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
 
             Column {
                 id: passwordContent
@@ -1401,12 +1505,23 @@ Item {
         }
 
         Text {
-            visible: root.statusMessage.length > 0
+            visible: root.statusMessage.length > 0 || opacity > 0.001
             text: root.statusMessage
             color: root.statusMessage.startsWith("Ethernet connected") || root.statusMessage.startsWith("Connecting Ethernet") ? root.accentColor : root.dangerColor
             font.pixelSize: 11
             width: root.width
+            height: root.statusMessage.length > 0 ? implicitHeight : 0
+            opacity: root.statusMessage.length > 0 ? 1 : 0
+            clip: true
             wrapMode: Text.WordWrap
+
+            Behavior on height {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
+
+            Behavior on opacity {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
         }
     }
 }
