@@ -19,6 +19,8 @@ PanelWindow {
     // Timing
     property int showDelay: 200
     property int hideDelay: 100
+    property int animationDuration: 260
+    property int contentAnimationDuration: 180
     property bool expanded: false
 
     property color background: "#ffffff"
@@ -62,28 +64,28 @@ PanelWindow {
 
     Behavior on margins.top {
         NumberAnimation {
-            duration: 250
+            duration: root.animationDuration
             easing.type: Easing.OutCubic
         }
     }
 
     Behavior on margins.bottom {
         NumberAnimation {
-            duration: 250
+            duration: root.animationDuration
             easing.type: Easing.OutCubic
         }
     }
 
     Behavior on margins.left {
         NumberAnimation {
-            duration: 250
+            duration: root.animationDuration
             easing.type: Easing.OutCubic
         }
     }
 
     Behavior on margins.right {
         NumberAnimation {
-            duration: 250
+            duration: root.animationDuration
             easing.type: Easing.OutCubic
         }
     }
@@ -94,10 +96,21 @@ PanelWindow {
         anchors.fill: parent
 
         opacity: root.expanded ? 1 : 0
+        scale: root.expanded ? 1 : 0.985
+        transformOrigin: Item.Center
+        enabled: root.expanded
 
         Behavior on opacity {
             NumberAnimation {
-                duration: 120
+                duration: root.contentAnimationDuration
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Behavior on scale {
+            NumberAnimation {
+                duration: root.contentAnimationDuration
+                easing.type: Easing.OutCubic
             }
         }
 
