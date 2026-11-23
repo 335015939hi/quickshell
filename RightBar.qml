@@ -9,6 +9,10 @@ Slide {
     edge: "right"
     slideWidth: 300
 
+    onHide: function () {
+        sessionConfirm.visible = false;
+    }
+
     Column {
         anchors.horizontalCenter: parent.horizontalCenter
         Clock {

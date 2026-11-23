@@ -21,9 +21,6 @@ PanelWindow {
     property int hideDelay: 100
     property bool expanded: false
 
-    // Appearance
-    WlrLayershell.namespace: "qs-bar"
-
     property color background: "#ffffff"
 
     property bool roundCornerBottomRight: false
@@ -31,9 +28,13 @@ PanelWindow {
     property bool roundCornerTopRight: false
     property bool roundCornerTopLeft: false
 
-    readonly property bool vertical: edge === "left" || edge === "right"
+    property var onShow: function () {}
+    property var onHide: function () {}
 
+    readonly property bool vertical: edge === "left" || edge === "right"
     readonly property int thickness: vertical ? slideWidth : slideHeight
+    // Appearance
+    WlrLayershell.namespace: "qs-bar"
 
     color: "transparent"
 
@@ -132,12 +133,18 @@ PanelWindow {
     Timer {
         id: showTimer
         interval: root.showDelay
-        onTriggered: root.expanded = true
+        onTriggered: {
+            root.expanded = true;
+            root.onShow();
+        }
     }
 
     Timer {
         id: hideTimer
         interval: root.hideDelay
-        onTriggered: root.expanded = false
+        onTriggered: {
+            root.expanded = false;
+            root.onHide();
+        }
     }
 }
