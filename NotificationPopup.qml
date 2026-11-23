@@ -32,7 +32,8 @@ Item {
     implicitWidth: 360
     implicitHeight: contentColumn.implicitHeight + 28 + (timeoutMs > 0 ? 6 : 0)
     width: implicitWidth
-    height: closing ? 0 : implicitHeight
+    // Keep this slot in the Column until the exit animation has completed.
+    height: implicitHeight
     // Do not clip the content layer: it must remain visible while sliding out.
     clip: false
 
@@ -43,7 +44,7 @@ Item {
 
         width: root.width
         height: root.implicitHeight
-        x: root.closing || !root.entered ? root.width + 24 : 0
+        x: root.closing || !root.entered ? 28 : 0
         opacity: root.closing || !root.entered ? 0 : 1
 
         Behavior on x {

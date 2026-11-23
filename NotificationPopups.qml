@@ -102,12 +102,13 @@ PanelWindow {
         height: implicitHeight
         spacing: 0
 
-        // Track changing layout positions without restarting the animation
-        // from a new easing curve whenever the stack changes again.
+        // Existing notifications only move once, after an exiting item
+        // has finished its content animation and is removed from the layout.
         move: Transition {
-            SmoothedAnimation {
+            NumberAnimation {
                 properties: "y"
-                velocity: 600
+                duration: 180
+                easing.type: Easing.OutCubic
             }
         }
     }
