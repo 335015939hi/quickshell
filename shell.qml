@@ -20,4 +20,14 @@ ShellRoot {
             anchors.horizontalCenter: parent.horizontalCenter
         }
     }
+    Slide {
+        background: color.primary_a
+        edge: "right"
+        slideWidth: 80
+
+        Clock {
+            color: color.on_primary
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+    }
 }
