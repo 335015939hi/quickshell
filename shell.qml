@@ -6,6 +6,11 @@ ShellRoot {
     Matugen {
         id: color
     }
+
+    NotificationService {
+        id: notifications
+    }
+
     Bar {
         anchors.top: true
         anchors.right: true
@@ -20,6 +25,7 @@ ShellRoot {
             anchors.horizontalCenter: parent.horizontalCenter
         }
     }
+
     Slide {
         background: color.primary_a
         edge: "right"
@@ -29,5 +35,11 @@ ShellRoot {
             color: color.on_primary
             anchors.horizontalCenter: parent.horizontalCenter
         }
+    }
+
+    NotificationPopups {
+        notificationModel: notifications.trackedNotifications
+        background: color.primary_a
+        foreground: color.on_primary
     }
 }
