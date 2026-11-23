@@ -8,20 +8,62 @@ Item {
     required property var notification
     property color background: "#303030"
     property color foreground: "#ffffff"
+    property bool closing: false
+    property bool entered: false
 
+    readonly property int slideDuration: 220
     readonly property int timeoutMs: {
         const timeout = root.notification.expireTimeout
+
         if (timeout > 0)
             return Math.round(timeout * 1000)
+
+        // -1 means use the notification server's default timeout.
         if (timeout < 0)
             return 5000
+
+        // A timeout of 0 means the notification does not expire.
         return 0
     }
 
+    property real remaining: 1.0
+
+    signal removalFinished()
+
     implicitWidth: 360
+    implicitHeight: content.implicitHeight + 28 + (timeoutMs > 0 ? 6 : 0)
     width: implicitWidth
-    height: implicitHeight
-    implicitHeight: content.implicitHeight + 28
+    height: closing ? 0 : implicitHeight
+    x: closing || !entered ? width + 24 : 0
+    opacity: closing || !entered ? 0 : 1
+    clip: true
+
+    Behavior on x {
+        NumberAnimation {
+            duration: root.slideDuration
+            easing.type: Easing.OutCubic
+        }
+    }
+
+    Behavior on opacity {
+        NumberAnimation {
+            duration: root.slideDuration
+            easing.type: Easing.OutCubic
+        }
+    }
+
+    Behavior on height {
+        NumberAnimation {
+            duration: root.slideDuration
+            easing.type: Easing.InCubic
+        }
+    }
+
+    // Keep the notification object alive while its popup animates out.
+    RetainableLock {
+        object: root.notification
+        locked: true
+    }
 
     function applicationIcon() {
         const icon = root.notification.appIcon
@@ -33,6 +75,15 @@ Item {
             return icon
 
         return Quickshell.iconPath(icon, "application-x-executable")
+    }
+
+    Component.onCompleted: root.entered = true
+
+    onClosingChanged: {
+        if (root.closing) {
+            expiryAnimation.stop()
+            removalTimer.start()
+        }
     }
 
     Rectangle {
@@ -182,14 +233,57 @@ Item {
         }
     }
 
+    // Plasma-style lifetime indicator: the filled strip drains from right to left.
+    Rectangle {
+        id: expiryTrack
+
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: 14
+        anchors.rightMargin: 14
+        anchors.bottomMargin: 10
+        height: 3
+        radius: 2
+        visible: root.timeoutMs > 0
+        color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.16)
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: parent.width * root.remaining
+            radius: parent.radius
+            color: root.foreground
+        }
+    }
+
     HoverHandler {
         id: hover
     }
 
+    NumberAnimation {
+        id: expiryAnimation
+
+        target: root
+        property: "remaining"
+        from: 1
+        to: 0
+        duration: root.timeoutMs
+        running: root.timeoutMs > 0 && !root.closing
+        paused: hover.hovered
+        easing.type: Easing.Linear
+
+        onFinished: {
+            if (!root.closing)
+                root.notification.expire()
+        }
+    }
+
     Timer {
-        interval: root.timeoutMs
-        running: root.timeoutMs > 0 && !hover.hovered
+        id: removalTimer
+        interval: root.slideDuration + 20
         repeat: false
-        onTriggered: root.notification.expire()
+        onTriggered: root.removalFinished()
     }
 }
