@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.widgets
 
 Slide {
     id: root
@@ -8,10 +9,13 @@ Slide {
     }
     background: color.background_a
     edge: "right"
-    slideWidth: 300
+    slideWidth: 500
+    focusable: true
 
     onHide: function () {
         sessionConfirm.visible = false;
+        viewDefault.visible = true;
+        viewNetwork.visible = false;
     }
 
     Item {
@@ -22,6 +26,15 @@ Slide {
             Clock {
                 color: color.on_background
                 anchors.margins: 10
+            }
+            Row {
+                IconButton {
+                    icon: "network-manager"
+                    onClicked: {
+                        viewDefault.visible = false;
+                        viewNetwork.visible = true;
+                    }
+                }
             }
         }
         Column {
@@ -82,6 +95,21 @@ Slide {
                     command: "hyprlock & disown"
                 }
             }
+        }
+    }
+
+    Item {
+        id: viewNetwork
+        anchors.fill: parent
+        visible: false
+        NetworkWidget {
+            anchors.fill: parent
+            anchors.margins: 15
+            cardColor: color.surface_a
+            innerColor: color.surface_container_a
+            textColor: color.on_surface
+            mutedTextColor: color.on_surface_variant
+            accentColor: color.primary
         }
     }
 }
