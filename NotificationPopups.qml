@@ -32,12 +32,8 @@ PanelWindow {
     implicitWidth: 360
     implicitHeight: popupColumn.implicitHeight
 
-    Behavior on implicitHeight {
-        NumberAnimation {
-            duration: 220
-            easing.type: Easing.OutCubic
-        }
-    }
+    // Keep layer-shell resizing instantaneous. Animating this property would
+    // reconfigure the Wayland surface on every frame.
 
     // This is the only notification background. All notification content
     // is rendered inside it, so the stack reads as one continuous surface.
@@ -105,6 +101,16 @@ PanelWindow {
         width: root.implicitWidth
         height: implicitHeight
         spacing: 0
+
+        // Animate the remaining notifications when one is inserted or removed.
+        // Their heights themselves stay static during the transition.
+        move: Transition {
+            NumberAnimation {
+                properties: "y"
+                duration: 200
+                easing.type: Easing.OutCubic
+            }
+        }
     }
 
     Connections {

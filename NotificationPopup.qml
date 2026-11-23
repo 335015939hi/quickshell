@@ -33,14 +33,8 @@ Item {
     implicitHeight: contentColumn.implicitHeight + 28 + (timeoutMs > 0 ? 6 : 0)
     width: implicitWidth
     height: closing ? 0 : implicitHeight
-    clip: true
-
-    Behavior on height {
-        NumberAnimation {
-            duration: root.slideDuration
-            easing.type: Easing.InCubic
-        }
-    }
+    // Do not clip the content layer: it must remain visible while sliding out.
+    clip: false
 
     // Animate only the notification's contents. The parent Column owns
     // this Item's position, so animating root.x would fight the layout.
