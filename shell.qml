@@ -7,18 +7,8 @@ ShellRoot {
     Matugen {
         id: color
     }
-    NotificationServer {
-        id: notificationServer
-
-        actionsSupported: true
-        bodyMarkupSupported: true
-        imageSupported: true
-
-        onNotification: notification => {
-            notification.tracked = true;
-
-            console.log(notification.appName, notification.summary, notification.body);
-        }
+    NotificationService {
+        id: notifications
     }
 
     Bar {
@@ -36,4 +26,9 @@ ShellRoot {
         }
     }
     RightBar {}
+    NotificationPopups {
+        notificationModel: notifications.trackedNotifications
+        background: color.primary_a
+        foreground: color.on_primary
+    }
 }
