@@ -30,13 +30,13 @@ IconButton {
     function icon() {
         var percent = Math.floor(dev.percentage * 10) * 10;
         var icon = "battery-0" + percent;
-        icon += UPowerDeviceState.Charging ? "-charging" : "";
+        icon += _charging ? "-charging" : "";
         icon += "-symbolic.svg";
         return icon;
     }
     function batteryText(dispCharge) {
         var text = Math.floor(dev.percentage * 100);
-        text += UPowerDeviceState.Charging && dispCharge ? "% (Charging)" : "%";
+        text += dispCharge ? (_charging ? "% (Charging)" : (UPowerDeviceState.FullyCharged ? "% (Full)" : "%")) : "%";
         return text;
     }
     icon: icon()

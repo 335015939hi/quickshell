@@ -25,8 +25,7 @@ Slide {
                 format: "yyyy/mm/dd hh:mm:ss"
             }
             Row {
-                IconButton {
-                    icon: "network-manager"
+                Network {
                     onClicked: {
                         viewDefault.visible = false;
                         viewNetwork.visible = true;

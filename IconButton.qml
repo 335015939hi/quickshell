@@ -6,7 +6,7 @@ HoverArea {
 
     property string icon: "system-shutdown"
     property string text: ""
-    property color textColor: "#000000"
+    property color textColor: Matugen.on_surface
     property string command: ""
 
     property int iconSize: 24
