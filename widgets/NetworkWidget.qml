@@ -110,6 +110,508 @@ Item {
         }
     }
 
+    component AdvancedEditor: Rectangle {
+        property string deviceName: ""
+        readonly property bool active: root.configOpen && root.configDeviceName === deviceName
+
+        Rectangle {
+            visible: active || opacity > 0.001
+            width: parent ? parent.width : root.width
+            radius: root.cornerRadius
+            color: root.cardColor
+            implicitHeight: advancedContent.implicitHeight + 24
+            height: active ? implicitHeight : 0
+            opacity: active ? 1 : 0
+            clip: true
+            enabled: active
+    
+            Behavior on height {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
+    
+            Behavior on opacity {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
+    
+            Column {
+                id: advancedContent
+                anchors.fill: parent
+                anchors.margins: 14
+                spacing: 9
+    
+                Row {
+                    width: parent.width
+                    height: 28
+    
+                    Text {
+                        width: parent.width - closeAdvanced.width - 8
+                        text: "Advanced · " + root.configDeviceName
+                        color: root.textColor
+                        font.pixelSize: 14
+                        font.weight: Font.DemiBold
+                        elide: Text.ElideRight
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+    
+                    Rectangle {
+                        id: closeAdvanced
+                        width: 28
+                        height: 28
+                        radius: 7
+                        color: root.innerColor
+    
+                        Text {
+                            anchors.centerIn: parent
+                            text: "×"
+                            color: root.textColor
+                            font.pixelSize: 18
+                        }
+    
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: root.closeAdvanced()
+                        }
+                    }
+                }
+    
+                Text {
+                    visible: !root.configUuid && root.configStatus.length > 0
+                    width: parent.width
+                    text: root.configStatus
+                    color: root.mutedTextColor
+                    font.pixelSize: 11
+                    wrapMode: Text.WordWrap
+                }
+    
+                Column {
+                    visible: root.configUuid.length > 0
+                    width: parent.width
+                    spacing: 8
+    
+                    Text {
+                        text: "IPv4"
+                        color: root.textColor
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                    }
+    
+                    Row {
+                        width: parent.width
+                        spacing: 5
+    
+                        Repeater {
+                            model: [
+                                {
+                                    label: "Auto",
+                                    value: "auto"
+                                },
+                                {
+                                    label: "Manual",
+                                    value: "manual"
+                                },
+                                {
+                                    label: "Off",
+                                    value: "disabled"
+                                }
+                            ]
+    
+                            delegate: Rectangle {
+                                required property var modelData
+                                width: (parent.width - 10) / 3
+                                height: 28
+                                radius: 7
+                                color: root.configIpv4Mode === modelData.value ? root.accentColor : root.innerColor
+    
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: modelData.label
+                                    color: root.configIpv4Mode === modelData.value ? "#171925" : root.textColor
+                                    font.pixelSize: 10
+                                    font.weight: root.configIpv4Mode === modelData.value ? Font.DemiBold : Font.Normal
+                                }
+    
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: root.configIpv4Mode = modelData.value
+                                }
+                            }
+                        }
+                    }
+    
+                    ConfigField {
+                        visible: root.configIpv4Mode === "manual"
+                        width: parent.width
+                        label: "Address/CIDR"
+                        value: root.configIpv4Address
+                        onEdited: value => root.configIpv4Address = value
+                    }
+    
+                    ConfigField {
+                        visible: root.configIpv4Mode === "manual"
+                        width: parent.width
+                        label: "Gateway"
+                        value: root.configIpv4Gateway
+                        onEdited: value => root.configIpv4Gateway = value
+                    }
+    
+                    ConfigField {
+                        visible: root.configIpv4Mode !== "disabled"
+                        width: parent.width
+                        label: "DNS"
+                        value: root.configIpv4Dns
+                        onEdited: value => root.configIpv4Dns = value
+                    }
+    
+                    ConfigField {
+                        visible: root.configIpv4Mode !== "disabled"
+                        width: parent.width
+                        label: "Search"
+                        value: root.configIpv4Search
+                        onEdited: value => root.configIpv4Search = value
+                    }
+    
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: root.accentColor
+                    }
+    
+                    Text {
+                        text: "IPv6"
+                        color: root.textColor
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                    }
+    
+                    Row {
+                        width: parent.width
+                        spacing: 4
+    
+                        Repeater {
+                            model: [
+                                {
+                                    label: "Auto",
+                                    value: "auto"
+                                },
+                                {
+                                    label: "DHCP",
+                                    value: "dhcp"
+                                },
+                                {
+                                    label: "Manual",
+                                    value: "manual"
+                                },
+                                {
+                                    label: "Link-local",
+                                    value: "link-local"
+                                },
+                                {
+                                    label: "Off",
+                                    value: "disabled"
+                                }
+                            ]
+    
+                            delegate: Rectangle {
+                                required property var modelData
+                                width: (parent.width - 16) / 5
+                                height: 28
+                                radius: 7
+                                color: root.configIpv6Mode === modelData.value ? root.accentColor : root.innerColor
+    
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: modelData.label
+                                    color: root.configIpv6Mode === modelData.value ? "#171925" : root.textColor
+                                    font.pixelSize: 9
+                                    font.weight: root.configIpv6Mode === modelData.value ? Font.DemiBold : Font.Normal
+                                }
+    
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: root.configIpv6Mode = modelData.value
+                                }
+                            }
+                        }
+                    }
+    
+                    ConfigField {
+                        visible: root.configIpv6Mode === "manual"
+                        width: parent.width
+                        label: "Address/CIDR"
+                        value: root.configIpv6Address
+                        onEdited: value => root.configIpv6Address = value
+                    }
+    
+                    ConfigField {
+                        visible: root.configIpv6Mode === "manual"
+                        width: parent.width
+                        label: "Gateway"
+                        value: root.configIpv6Gateway
+                        onEdited: value => root.configIpv6Gateway = value
+                    }
+    
+                    ConfigField {
+                        visible: root.configIpv6Mode === "auto" || root.configIpv6Mode === "dhcp" || root.configIpv6Mode === "manual"
+                        width: parent.width
+                        label: "DNS"
+                        value: root.configIpv6Dns
+                        onEdited: value => root.configIpv6Dns = value
+                    }
+    
+                    ConfigField {
+                        visible: root.configIpv6Mode === "auto" || root.configIpv6Mode === "dhcp" || root.configIpv6Mode === "manual"
+                        width: parent.width
+                        label: "Search"
+                        value: root.configIpv6Search
+                        onEdited: value => root.configIpv6Search = value
+                    }
+    
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: root.accentColor
+                    }
+    
+                    Text {
+                        text: "Connection"
+                        color: root.textColor
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                    }
+    
+                    ConfigField {
+                        width: parent.width
+                        label: "MTU"
+                        value: root.configMtu
+                        onEdited: value => root.configMtu = value
+                    }
+    
+                    Rectangle {
+                        width: parent.width
+                        height: 30
+                        radius: 7
+                        color: root.innerColor
+    
+                        Row {
+                            anchors.fill: parent
+                            anchors.leftMargin: 9
+                            anchors.rightMargin: 9
+    
+                            Text {
+                                width: parent.width - 42
+                                text: "Autoconnect"
+                                color: root.textColor
+                                font.pixelSize: 11
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+    
+                            Rectangle {
+                                width: 34
+                                height: 20
+                                radius: 10
+                                color: root.configAutoconnect ? root.accentColor : root.mutedTextColor
+                                anchors.verticalCenter: parent.verticalCenter
+    
+                                Rectangle {
+                                    width: 14
+                                    height: 14
+                                    radius: 7
+                                    color: root.textColor
+                                    x: root.configAutoconnect ? 17 : 3
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+    
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: root.configAutoconnect = !root.configAutoconnect
+                                }
+                            }
+                        }
+                    }
+    
+                    Text {
+                        visible: root.configStatus.length > 0
+                        width: parent.width
+                        text: root.configStatus
+                        color: root.configStatus.startsWith("Configuration applied") ? root.accentColor : root.dangerColor
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                    }
+    
+                    Row {
+                        width: parent.width
+                        height: 32
+                        spacing: 8
+    
+                        Item {
+                            width: Math.max(0, parent.width - applyConfigButton.width - 8)
+                            height: 1
+                        }
+    
+                        Rectangle {
+                            id: applyConfigButton
+                            width: 112
+                            height: 30
+                            radius: 7
+                            color: root.accentColor
+                            opacity: root.configUuid.length > 0 ? 1.0 : 0.45
+    
+                            Text {
+                                anchors.centerIn: parent
+                                text: "Apply changes"
+                                color: "#171925"
+                                font.pixelSize: 11
+                                font.weight: Font.DemiBold
+                            }
+    
+                            MouseArea {
+                                anchors.fill: parent
+                                enabled: root.configUuid.length > 0 && !configApplyProcess.running && !configActivateProcess.running
+                                onClicked: root.applyAdvancedConfig()
+                            }
+                        }
+                    }
+                }
+    
+                Text {
+                    visible: root.configUuid.length > 0 && !root.configStatus.startsWith("Configuration applied")
+                    width: parent.width
+                    text: "Changes affect the saved NetworkManager profile. Reconnecting may briefly interrupt network access."
+                    color: root.mutedTextColor
+                    font.pixelSize: 10
+                    wrapMode: Text.WordWrap
+                }
+            }
+        }
+    }
+
+    component WifiPasswordPrompt: Rectangle {
+        required property var network
+        readonly property bool active: root.passwordPromptOpen && root.pendingNetwork === network
+
+        Rectangle {
+            visible: active || opacity > 0.001
+            width: parent ? parent.width : root.width
+            radius: root.cornerRadius
+            color: root.cardColor
+            implicitHeight: passwordContent.implicitHeight + 24
+            height: active ? implicitHeight : 0
+            opacity: active ? 1 : 0
+            clip: true
+            enabled: active
+    
+            Behavior on height {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
+    
+            Behavior on opacity {
+                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
+            }
+    
+            Column {
+                id: passwordContent
+                anchors.fill: parent
+                anchors.margins: 14
+                spacing: 9
+    
+                Text {
+                    text: network ? "Password for " + network.name : "Wi-Fi password"
+                    color: root.textColor
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    width: parent.width
+                    elide: Text.ElideRight
+                }
+    
+                Rectangle {
+                    width: parent.width
+                    height: 38
+                    radius: 7
+                    color: root.innerColor
+                    border.color: root.accentColor
+    
+                    TextInput {
+                        id: passwordField
+                        anchors.fill: parent
+                        anchors.leftMargin: 10
+                        anchors.rightMargin: 10
+                        verticalAlignment: TextInput.AlignVCenter
+                        color: root.textColor
+                        selectedTextColor: root.innerColor
+                        selectionColor: root.accentColor
+                        font.pixelSize: 13
+                        echoMode: TextInput.Password
+                        text: root.passwordInput
+                        onTextChanged: root.passwordInput = text
+                        onAccepted: root.submitPassword()
+                    }
+                }
+    
+                Text {
+                    visible: root.passwordError.length > 0
+                    text: root.passwordError
+                    color: root.passwordError.startsWith("Connecting") ? root.mutedTextColor : root.dangerColor
+                    font.pixelSize: 11
+                    width: parent.width
+                    wrapMode: Text.WordWrap
+                }
+    
+                Row {
+                    width: parent.width
+                    height: 30
+                    spacing: 8
+    
+                    Item {
+                        width: Math.max(0, parent.width - cancelButton.width - connectPasswordButton.width - 16)
+                        height: 1
+                    }
+    
+                    Rectangle {
+                        id: cancelButton
+                        width: 72
+                        height: 28
+                        radius: 7
+                        color: root.innerColor
+    
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Cancel"
+                            color: root.textColor
+                            font.pixelSize: 11
+                        }
+    
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: root.cancelPasswordPrompt()
+                        }
+                    }
+    
+                    Rectangle {
+                        id: connectPasswordButton
+                        width: 82
+                        height: 28
+                        radius: 7
+                        color: root.accentColor
+    
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Connect"
+                            color: "#171925"
+                            font.pixelSize: 11
+                            font.weight: Font.DemiBold
+                        }
+    
+                        MouseArea {
+                            anchors.fill: parent
+                            enabled: root.passwordInput.length > 0
+                            onClicked: root.submitPassword()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     function normaliseList(value) {
         return value.trim().split(/[,\s]+/).filter(part => part.length > 0).join(",");
     }
@@ -716,6 +1218,11 @@ Item {
                             }
                         }
                     }
+
+                    AdvancedEditor {
+                        width: parent.width
+                        deviceName: modelData.name
+                    }
                 }
 
                 Process {
@@ -870,64 +1377,75 @@ Item {
                             NumberAnimation { property: "y"; duration: 180; easing.type: Easing.OutCubic }
                         }
 
-                        delegate: Rectangle {
+                        delegate: Column {
                             required property var modelData
                             width: wifiList.width
-                            height: 42
-                            radius: 7
-                            color: modelData.connected ? root.innerColor : "transparent"
+                            height: implicitHeight
+                            spacing: 4
 
-                            Row {
-                                anchors.fill: parent
-                                anchors.leftMargin: 8
-                                anchors.rightMargin: 6
-                                spacing: 6
+                            Rectangle {
+                                width: parent.width
+                                height: 42
+                                radius: 7
+                                color: modelData.connected ? root.innerColor : "transparent"
 
-                                Column {
-                                    width: parent.width - connectButton.width - 6
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 1
+                                Row {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 8
+                                    anchors.rightMargin: 6
+                                    spacing: 6
 
-                                    Text {
-                                        width: parent.width
-                                        text: modelData.name.length > 0 ? modelData.name : "Hidden network"
-                                        color: root.textColor
-                                        font.pixelSize: 12
-                                        elide: Text.ElideRight
+                                    Column {
+                                        width: parent.width - connectButton.width - 6
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 1
+
+                                        Text {
+                                            width: parent.width
+                                            text: modelData.name.length > 0 ? modelData.name : "Hidden network"
+                                            color: root.textColor
+                                            font.pixelSize: 12
+                                            elide: Text.ElideRight
+                                        }
+
+                                        Text {
+                                            width: parent.width
+                                            text: WifiSecurityType.toString(modelData.security) + " · " + Math.round(modelData.signalStrength * 100) + "%" + (modelData.known ? " · Saved" : "")
+                                            color: root.mutedTextColor
+                                            font.pixelSize: 10
+                                            elide: Text.ElideRight
+                                        }
                                     }
 
-                                    Text {
-                                        width: parent.width
-                                        text: WifiSecurityType.toString(modelData.security) + " · " + Math.round(modelData.signalStrength * 100) + "%" + (modelData.known ? " · Saved" : "")
-                                        color: root.mutedTextColor
-                                        font.pixelSize: 10
-                                        elide: Text.ElideRight
+                                    Rectangle {
+                                        id: connectButton
+                                        width: 76
+                                        height: 28
+                                        radius: 7
+                                        color: modelData.connected ? root.dangerColor : root.accentColor
+                                        opacity: modelData.stateChanging ? 0.45 : 1.0
+                                        anchors.verticalCenter: parent.verticalCenter
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: modelData.connected ? "Disconnect" : (modelData.stateChanging ? "Working…" : "Connect")
+                                            color: modelData.connected ? "#27151b" : "#171925"
+                                            font.pixelSize: 10
+                                            font.weight: Font.DemiBold
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            enabled: !modelData.stateChanging
+                                            onClicked: root.connectToNetwork(modelData)
+                                        }
                                     }
                                 }
+                            }
 
-                                Rectangle {
-                                    id: connectButton
-                                    width: 76
-                                    height: 28
-                                    radius: 7
-                                    color: modelData.connected ? root.dangerColor : root.accentColor
-                                    opacity: modelData.stateChanging ? 0.45 : 1.0
-                                    anchors.verticalCenter: parent.verticalCenter
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: modelData.connected ? "Disconnect" : (modelData.stateChanging ? "Working…" : "Connect")
-                                        color: modelData.connected ? "#27151b" : "#171925"
-                                        font.pixelSize: 10
-                                        font.weight: Font.DemiBold
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        enabled: !modelData.stateChanging
-                                        onClicked: root.connectToNetwork(modelData)
-                                    }
-                                }
+                            WifiPasswordPrompt {
+                                width: parent.width
+                                network: modelData
                             }
                         }
 
@@ -981,6 +1499,11 @@ Item {
                             }
                         }
                     }
+
+                    AdvancedEditor {
+                        width: parent.width
+                        deviceName: modelData.name
+                    }
                 }
 
                 Process {
@@ -1004,501 +1527,6 @@ Item {
                     function onConnectedChanged() {
                         if (!modelData.connected)
                             wifiCard.ipAddresses = "";
-                    }
-                }
-            }
-        }
-
-        // Advanced IP/DNS editor. Settings are saved to the active profile.
-        Rectangle {
-            visible: root.configOpen || opacity > 0.001
-            width: root.width
-            radius: root.cornerRadius
-            color: root.cardColor
-            implicitHeight: advancedContent.implicitHeight + 24
-            height: root.configOpen ? implicitHeight : 0
-            opacity: root.configOpen ? 1 : 0
-            clip: true
-            enabled: root.configOpen
-
-            Behavior on height {
-                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
-            }
-
-            Behavior on opacity {
-                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
-            }
-
-            Column {
-                id: advancedContent
-                anchors.fill: parent
-                anchors.margins: 14
-                spacing: 9
-
-                Row {
-                    width: parent.width
-                    height: 28
-
-                    Text {
-                        width: parent.width - closeAdvanced.width - 8
-                        text: "Advanced · " + root.configDeviceName
-                        color: root.textColor
-                        font.pixelSize: 14
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    Rectangle {
-                        id: closeAdvanced
-                        width: 28
-                        height: 28
-                        radius: 7
-                        color: root.innerColor
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "×"
-                            color: root.textColor
-                            font.pixelSize: 18
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: root.closeAdvanced()
-                        }
-                    }
-                }
-
-                Text {
-                    visible: !root.configUuid && root.configStatus.length > 0
-                    width: parent.width
-                    text: root.configStatus
-                    color: root.mutedTextColor
-                    font.pixelSize: 11
-                    wrapMode: Text.WordWrap
-                }
-
-                Column {
-                    visible: root.configUuid.length > 0
-                    width: parent.width
-                    spacing: 8
-
-                    Text {
-                        text: "IPv4"
-                        color: root.textColor
-                        font.pixelSize: 12
-                        font.weight: Font.DemiBold
-                    }
-
-                    Row {
-                        width: parent.width
-                        spacing: 5
-
-                        Repeater {
-                            model: [
-                                {
-                                    label: "Auto",
-                                    value: "auto"
-                                },
-                                {
-                                    label: "Manual",
-                                    value: "manual"
-                                },
-                                {
-                                    label: "Off",
-                                    value: "disabled"
-                                }
-                            ]
-
-                            delegate: Rectangle {
-                                required property var modelData
-                                width: (parent.width - 10) / 3
-                                height: 28
-                                radius: 7
-                                color: root.configIpv4Mode === modelData.value ? root.accentColor : root.innerColor
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: modelData.label
-                                    color: root.configIpv4Mode === modelData.value ? "#171925" : root.textColor
-                                    font.pixelSize: 10
-                                    font.weight: root.configIpv4Mode === modelData.value ? Font.DemiBold : Font.Normal
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onClicked: root.configIpv4Mode = modelData.value
-                                }
-                            }
-                        }
-                    }
-
-                    ConfigField {
-                        visible: root.configIpv4Mode === "manual"
-                        width: parent.width
-                        label: "Address/CIDR"
-                        value: root.configIpv4Address
-                        onEdited: value => root.configIpv4Address = value
-                    }
-
-                    ConfigField {
-                        visible: root.configIpv4Mode === "manual"
-                        width: parent.width
-                        label: "Gateway"
-                        value: root.configIpv4Gateway
-                        onEdited: value => root.configIpv4Gateway = value
-                    }
-
-                    ConfigField {
-                        visible: root.configIpv4Mode !== "disabled"
-                        width: parent.width
-                        label: "DNS"
-                        value: root.configIpv4Dns
-                        onEdited: value => root.configIpv4Dns = value
-                    }
-
-                    ConfigField {
-                        visible: root.configIpv4Mode !== "disabled"
-                        width: parent.width
-                        label: "Search"
-                        value: root.configIpv4Search
-                        onEdited: value => root.configIpv4Search = value
-                    }
-
-                    Rectangle {
-                        width: parent.width
-                        height: 1
-                        color: root.accentColor
-                    }
-
-                    Text {
-                        text: "IPv6"
-                        color: root.textColor
-                        font.pixelSize: 12
-                        font.weight: Font.DemiBold
-                    }
-
-                    Row {
-                        width: parent.width
-                        spacing: 4
-
-                        Repeater {
-                            model: [
-                                {
-                                    label: "Auto",
-                                    value: "auto"
-                                },
-                                {
-                                    label: "DHCP",
-                                    value: "dhcp"
-                                },
-                                {
-                                    label: "Manual",
-                                    value: "manual"
-                                },
-                                {
-                                    label: "Link-local",
-                                    value: "link-local"
-                                },
-                                {
-                                    label: "Off",
-                                    value: "disabled"
-                                }
-                            ]
-
-                            delegate: Rectangle {
-                                required property var modelData
-                                width: (parent.width - 16) / 5
-                                height: 28
-                                radius: 7
-                                color: root.configIpv6Mode === modelData.value ? root.accentColor : root.innerColor
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: modelData.label
-                                    color: root.configIpv6Mode === modelData.value ? "#171925" : root.textColor
-                                    font.pixelSize: 9
-                                    font.weight: root.configIpv6Mode === modelData.value ? Font.DemiBold : Font.Normal
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onClicked: root.configIpv6Mode = modelData.value
-                                }
-                            }
-                        }
-                    }
-
-                    ConfigField {
-                        visible: root.configIpv6Mode === "manual"
-                        width: parent.width
-                        label: "Address/CIDR"
-                        value: root.configIpv6Address
-                        onEdited: value => root.configIpv6Address = value
-                    }
-
-                    ConfigField {
-                        visible: root.configIpv6Mode === "manual"
-                        width: parent.width
-                        label: "Gateway"
-                        value: root.configIpv6Gateway
-                        onEdited: value => root.configIpv6Gateway = value
-                    }
-
-                    ConfigField {
-                        visible: root.configIpv6Mode === "auto" || root.configIpv6Mode === "dhcp" || root.configIpv6Mode === "manual"
-                        width: parent.width
-                        label: "DNS"
-                        value: root.configIpv6Dns
-                        onEdited: value => root.configIpv6Dns = value
-                    }
-
-                    ConfigField {
-                        visible: root.configIpv6Mode === "auto" || root.configIpv6Mode === "dhcp" || root.configIpv6Mode === "manual"
-                        width: parent.width
-                        label: "Search"
-                        value: root.configIpv6Search
-                        onEdited: value => root.configIpv6Search = value
-                    }
-
-                    Rectangle {
-                        width: parent.width
-                        height: 1
-                        color: root.accentColor
-                    }
-
-                    Text {
-                        text: "Connection"
-                        color: root.textColor
-                        font.pixelSize: 12
-                        font.weight: Font.DemiBold
-                    }
-
-                    ConfigField {
-                        width: parent.width
-                        label: "MTU"
-                        value: root.configMtu
-                        onEdited: value => root.configMtu = value
-                    }
-
-                    Rectangle {
-                        width: parent.width
-                        height: 30
-                        radius: 7
-                        color: root.innerColor
-
-                        Row {
-                            anchors.fill: parent
-                            anchors.leftMargin: 9
-                            anchors.rightMargin: 9
-
-                            Text {
-                                width: parent.width - 42
-                                text: "Autoconnect"
-                                color: root.textColor
-                                font.pixelSize: 11
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-
-                            Rectangle {
-                                width: 34
-                                height: 20
-                                radius: 10
-                                color: root.configAutoconnect ? root.accentColor : root.mutedTextColor
-                                anchors.verticalCenter: parent.verticalCenter
-
-                                Rectangle {
-                                    width: 14
-                                    height: 14
-                                    radius: 7
-                                    color: root.textColor
-                                    x: root.configAutoconnect ? 17 : 3
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onClicked: root.configAutoconnect = !root.configAutoconnect
-                                }
-                            }
-                        }
-                    }
-
-                    Text {
-                        visible: root.configStatus.length > 0
-                        width: parent.width
-                        text: root.configStatus
-                        color: root.configStatus.startsWith("Configuration applied") ? root.accentColor : root.dangerColor
-                        font.pixelSize: 11
-                        wrapMode: Text.WordWrap
-                    }
-
-                    Row {
-                        width: parent.width
-                        height: 32
-                        spacing: 8
-
-                        Item {
-                            width: Math.max(0, parent.width - applyConfigButton.width - 8)
-                            height: 1
-                        }
-
-                        Rectangle {
-                            id: applyConfigButton
-                            width: 112
-                            height: 30
-                            radius: 7
-                            color: root.accentColor
-                            opacity: root.configUuid.length > 0 ? 1.0 : 0.45
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "Apply changes"
-                                color: "#171925"
-                                font.pixelSize: 11
-                                font.weight: Font.DemiBold
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                enabled: root.configUuid.length > 0 && !configApplyProcess.running && !configActivateProcess.running
-                                onClicked: root.applyAdvancedConfig()
-                            }
-                        }
-                    }
-                }
-
-                Text {
-                    visible: root.configUuid.length > 0 && !root.configStatus.startsWith("Configuration applied")
-                    width: parent.width
-                    text: "Changes affect the saved NetworkManager profile. Reconnecting may briefly interrupt network access."
-                    color: root.mutedTextColor
-                    font.pixelSize: 10
-                    wrapMode: Text.WordWrap
-                }
-            }
-        }
-
-        // Inline password prompt; it stays open until NetworkManager confirms
-        // the connection or the user cancels it.
-        Rectangle {
-            visible: root.passwordPromptOpen || opacity > 0.001
-            width: root.width
-            radius: root.cornerRadius
-            color: root.cardColor
-            implicitHeight: passwordContent.implicitHeight + 24
-            height: root.passwordPromptOpen ? implicitHeight : 0
-            opacity: root.passwordPromptOpen ? 1 : 0
-            clip: true
-            enabled: root.passwordPromptOpen
-
-            Behavior on height {
-                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
-            }
-
-            Behavior on opacity {
-                NumberAnimation { duration: root.animationDuration; easing.type: Easing.OutCubic }
-            }
-
-            Column {
-                id: passwordContent
-                anchors.fill: parent
-                anchors.margins: 14
-                spacing: 9
-
-                Text {
-                    text: root.pendingNetwork ? "Password for " + root.pendingNetwork.name : "Wi-Fi password"
-                    color: root.textColor
-                    font.pixelSize: 14
-                    font.weight: Font.DemiBold
-                    width: parent.width
-                    elide: Text.ElideRight
-                }
-
-                Rectangle {
-                    width: parent.width
-                    height: 38
-                    radius: 7
-                    color: root.innerColor
-                    border.color: root.accentColor
-
-                    TextInput {
-                        id: passwordField
-                        anchors.fill: parent
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 10
-                        verticalAlignment: TextInput.AlignVCenter
-                        color: root.textColor
-                        selectedTextColor: root.innerColor
-                        selectionColor: root.accentColor
-                        font.pixelSize: 13
-                        echoMode: TextInput.Password
-                        text: root.passwordInput
-                        onTextChanged: root.passwordInput = text
-                        onAccepted: root.submitPassword()
-                    }
-                }
-
-                Text {
-                    visible: root.passwordError.length > 0
-                    text: root.passwordError
-                    color: root.passwordError.startsWith("Connecting") ? root.mutedTextColor : root.dangerColor
-                    font.pixelSize: 11
-                    width: parent.width
-                    wrapMode: Text.WordWrap
-                }
-
-                Row {
-                    width: parent.width
-                    height: 30
-                    spacing: 8
-
-                    Item {
-                        width: Math.max(0, parent.width - cancelButton.width - connectPasswordButton.width - 16)
-                        height: 1
-                    }
-
-                    Rectangle {
-                        id: cancelButton
-                        width: 72
-                        height: 28
-                        radius: 7
-                        color: root.innerColor
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "Cancel"
-                            color: root.textColor
-                            font.pixelSize: 11
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: root.cancelPasswordPrompt()
-                        }
-                    }
-
-                    Rectangle {
-                        id: connectPasswordButton
-                        width: 82
-                        height: 28
-                        radius: 7
-                        color: root.accentColor
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "Connect"
-                            color: "#171925"
-                            font.pixelSize: 11
-                            font.weight: Font.DemiBold
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            enabled: root.passwordInput.length > 0
-                            onClicked: root.submitPassword()
-                        }
                     }
                 }
             }
