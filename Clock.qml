@@ -2,12 +2,23 @@ import Quickshell
 import QtQuick
 import qs
 
-Text {
+HoverArea {
+    id: root
     property string format: "hh:mm:ss"
-    property date currentTime: new Date()
+    property string tooltipFormat: "dddd, MMMM d, yyyy\nhh:mm:ss"
     property int textSize: 16
-    font {
-        pixelSize: textSize
+    property color color
+    implicitWidth: text.implicitWidth
+    implicitHeight: text.implicitHeight
+    Text {
+        id: text
+        font {
+            pixelSize: root.textSize
+        }
+        color: root.color
+        text: Qt.formatDateTime(Globals.currentTime, root.format)
     }
-    text: Qt.formatDateTime(Globals.currentTime, format)
+    BarTooltip {
+        text: Qt.formatDateTime(Globals.currentTime, root.tooltipFormat)
+    }
 }
