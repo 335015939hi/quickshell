@@ -57,7 +57,9 @@ Slide {
                 }
                 IconButton {
                     icon: "dialog-cancel"
-                    onClicked: {}
+                    onClicked: {
+                        sessionConfirm.visible = false;
+                    }
                 }
             }
             Row {
