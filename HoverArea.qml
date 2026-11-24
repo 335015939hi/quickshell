@@ -11,11 +11,12 @@ MouseArea {
     Rectangle {
         anchors.fill: parent
         radius: root.cornerRadius
-        color: root.containsMouse ? root.hoverColor : "transparent"
+        opacity: root.containsMouse ? 1 : 0
+        color: root.hoverColor
 
-        Behavior on color {
-            ColorAnimation {
-                duration: 120
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Globals.animationTime
             }
         }
     }

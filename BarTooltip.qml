@@ -23,8 +23,8 @@ Item {
         id: tip
 
         color: "transparent"
-        visible: root._shown && root.text !== ""
         grabFocus: false
+        visible: tipRect.opacity != 0
 
         // Position relative to the anchor item.
         anchor.item: root.anchorItem
@@ -37,9 +37,17 @@ Item {
         implicitHeight: tipText.implicitHeight + 8
 
         Rectangle {
+            id: tipRect
             anchors.fill: parent
             color: Matugen.surface_a
             radius: tip.implicitHeight / 2
+            opacity: (root._shown && root.text !== "") ? 1 : 0
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: Globals.animationTime
+                    easing.type: Easing.OutCubic
+                }
+            }
 
             Text {
                 id: tipText

@@ -60,31 +60,67 @@ PanelWindow {
 
     margins.right: edge === "right" ? (expanded ? 0 : peekWidth - width) : 0
 
-    Behavior on margins.top {
-        NumberAnimation {
-            duration: 250
-            easing.type: Easing.OutCubic
-        }
-    }
-
-    Behavior on margins.bottom {
-        NumberAnimation {
-            duration: 250
-            easing.type: Easing.OutCubic
+    Behavior on margins.right {
+        SequentialAnimation {
+            NumberAnimation {
+                duration: Globals.animationTime
+                easing.type: Easing.OutCubic
+            }
+            ScriptAction {
+                script: {
+                    if (!root.expanded) {
+                        root.onHide();
+                    }
+                }
+            }
         }
     }
 
     Behavior on margins.left {
-        NumberAnimation {
-            duration: 250
-            easing.type: Easing.OutCubic
+        SequentialAnimation {
+            NumberAnimation {
+                duration: Globals.animationTime
+                easing.type: Easing.OutCubic
+            }
+            ScriptAction {
+                script: {
+                    if (!root.expanded) {
+                        root.onHide();
+                    }
+                }
+            }
         }
     }
 
-    Behavior on margins.right {
-        NumberAnimation {
-            duration: 250
-            easing.type: Easing.OutCubic
+    Behavior on margins.bottom {
+        SequentialAnimation {
+            NumberAnimation {
+                duration: Globals.animationTime
+                easing.type: Easing.OutCubic
+            }
+            ScriptAction {
+                script: {
+                    if (!root.expanded) {
+                        root.onHide();
+                    }
+                }
+            }
+        }
+    }
+
+    Behavior on margins.top {
+        SequentialAnimation {
+            NumberAnimation {
+                duration: Globals.animationTime
+                easing.type: Easing.OutCubic
+            }
+            ScriptAction {
+                script: {
+                    if (!root.expanded) {
+                        root.onHide();
+                    }
+                }
+            }
         }
     }
 
@@ -92,14 +128,6 @@ PanelWindow {
     Item {
         id: contentRoot
         anchors.fill: parent
-
-        opacity: root.expanded ? 1 : 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 120
-            }
-        }
 
         Rectangle {
             anchors.fill: parent
@@ -144,7 +172,6 @@ PanelWindow {
         interval: root.hideDelay
         onTriggered: {
             root.expanded = false;
-            root.onHide();
         }
     }
 }

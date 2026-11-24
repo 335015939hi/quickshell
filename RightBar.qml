@@ -10,7 +10,7 @@ Slide {
     focusable: true
 
     onHide: function () {
-        sessionConfirm.visible = false;
+        sessionConfirm.opened = false;
         viewDefault.visible = true;
         viewNetwork.visible = false;
     }
@@ -23,7 +23,6 @@ Slide {
             Clock {
                 color: Matugen.on_surface
                 format: "yyyy/mm/dd hh:mm:ss"
-                anchors.margins: 10
             }
             Row {
                 IconButton {
@@ -41,8 +40,51 @@ Slide {
             anchors.horizontalCenter: parent.horizontalCenter
             Row {
                 id: sessionConfirm
-                visible: false
+                visible: opacity != 0
+                opacity: opened ? 1 : 0
+                property bool opened: false
                 property string command: ""
+                property string _nextText: ""
+                property var setText: function (text) {
+                    if (text == sessionConfirmText.text) {
+                        return;
+                    }
+                    if (opened) {
+                        _nextText = text;
+                        textAnimation.restart();
+                    } else {
+                        sessionConfirmText.text = text;
+                    }
+                }
+                SequentialAnimation {
+                    id: textAnimation
+
+                    NumberAnimation {
+                        target: sessionConfirm
+                        property: "opacity"
+                        to: 0
+                        duration: Globals.animationTime
+                        easing.type: Easing.OutCubic
+                    }
+
+                    ScriptAction {
+                        script: sessionConfirmText.text = sessionConfirm._nextText
+                    }
+
+                    NumberAnimation {
+                        target: sessionConfirm
+                        property: "opacity"
+                        to: 1
+                        duration: Globals.animationTime / 2
+                        easing.type: Easing.OutCubic
+                    }
+                }
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: Globals.animationTime / 2
+                        easing.type: Easing.OutCubic
+                    }
+                }
                 Text {
                     id: sessionConfirmText
                     anchors.verticalCenter: parent.verticalCenter
@@ -52,13 +94,13 @@ Slide {
                     command: sessionConfirm.command
                     icon: "dialog-ok"
                     onClicked: {
-                        sessionConfirm.visible = false;
+                        sessionConfirm.opened = false;
                     }
                 }
                 IconButton {
                     icon: "dialog-cancel"
                     onClicked: {
-                        sessionConfirm.visible = false;
+                        sessionConfirm.opened = false;
                     }
                 }
             }
@@ -67,8 +109,8 @@ Slide {
                     icon: "system-shutdown-symbolic"
                     iconSize: 40
                     onClicked: {
-                        sessionConfirmText.text = "Shutdown?";
-                        sessionConfirm.visible = true;
+                        sessionConfirm.setText("Shutdown?");
+                        sessionConfirm.opened = true;
                         sessionConfirm.command = "systemctl poweroff";
                     }
                 }
@@ -76,8 +118,8 @@ Slide {
                     icon: "system-reboot-symbolic"
                     iconSize: 40
                     onClicked: {
-                        sessionConfirmText.text = "Reboot?";
-                        sessionConfirm.visible = true;
+                        sessionConfirm.setText("Reboot?");
+                        sessionConfirm.opened = true;
                         sessionConfirm.command = "systemctl reboot";
                     }
                 }
@@ -85,8 +127,8 @@ Slide {
                     icon: "system-log-out-symbolic"
                     iconSize: 40
                     onClicked: {
-                        sessionConfirmText.text = "Logout?";
-                        sessionConfirm.visible = true;
+                        sessionConfirm.setText("Logout?");
+                        sessionConfirm.opened = true;
                         sessionConfirm.command = "hyprshutdown";
                     }
                 }

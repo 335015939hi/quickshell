@@ -5,6 +5,7 @@ import QtQuick
 
 Singleton {
     property string networkIcon: ""
+
     property date currentTime: new Date()
     Timer {
         interval: 1000
@@ -14,4 +15,6 @@ Singleton {
 
         onTriggered: currentTime = new Date()
     }
+
+    property int animationTime: 250
 }

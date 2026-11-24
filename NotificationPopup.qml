@@ -10,24 +10,23 @@ Item {
     property bool closing: false
     property bool entered: false
 
-    readonly property int slideDuration: 220
     readonly property int timeoutMs: {
-        const timeout = root.notification.expireTimeout
+        const timeout = root.notification.expireTimeout;
 
         if (timeout > 0)
-            return Math.round(timeout * 1000)
+            return Math.round(timeout * 1000);
 
         // -1 means use the notification server's default timeout.
         if (timeout < 0)
-            return 5000
+            return 5000;
 
         // A timeout of 0 means the notification does not expire.
-        return 0
+        return 0;
     }
 
     property real remaining: 1.0
 
-    signal removalFinished()
+    signal removalFinished
 
     implicitWidth: 360
     implicitHeight: contentColumn.implicitHeight + 28 + (timeoutMs > 0 ? 6 : 0)
@@ -49,14 +48,14 @@ Item {
 
         Behavior on x {
             NumberAnimation {
-                duration: root.slideDuration
+                duration: Globals.animationTime
                 easing.type: Easing.OutCubic
             }
         }
 
         Behavior on opacity {
             NumberAnimation {
-                duration: root.slideDuration
+                duration: Globals.animationTime
                 easing.type: Easing.OutCubic
             }
         }
@@ -68,15 +67,15 @@ Item {
         }
 
         function applicationIcon() {
-            const icon = root.notification.appIcon
+            const icon = root.notification.appIcon;
 
             if (!icon)
-                return Quickshell.iconPath("application-x-executable")
+                return Quickshell.iconPath("application-x-executable");
 
             if (icon.startsWith("/") || icon.startsWith("file:") || icon.includes("://"))
-                return icon
+                return icon;
 
-            return Quickshell.iconPath(icon, "application-x-executable")
+            return Quickshell.iconPath(icon, "application-x-executable");
         }
 
         Column {
@@ -189,9 +188,7 @@ Item {
                         width: Math.min(actionText.implicitWidth + 22, contentColumn.width)
                         height: 30
                         radius: 9
-                        color: actionMouse.containsMouse
-                            ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.20)
-                            : Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.10)
+                        color: actionMouse.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.20) : Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.10)
                         border.width: 1
                         border.color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.16)
 
@@ -262,13 +259,13 @@ Item {
 
         onFinished: {
             if (!root.closing)
-                root.notification.expire()
+                root.notification.expire();
         }
     }
 
     Timer {
         id: removalTimer
-        interval: root.slideDuration + 20
+        interval: Globals.animationTime + 20
         repeat: false
         onTriggered: root.removalFinished()
     }
@@ -277,8 +274,8 @@ Item {
 
     onClosingChanged: {
         if (root.closing) {
-            expiryAnimation.stop()
-            removalTimer.start()
+            expiryAnimation.stop();
+            removalTimer.start();
         }
     }
 }
