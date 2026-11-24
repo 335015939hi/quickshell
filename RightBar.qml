@@ -7,7 +7,7 @@ Slide {
     Matugen {
         id: color
     }
-    background: color.background_a
+    background: color.surface_a
     edge: "right"
     slideWidth: 500
     focusable: true
@@ -24,7 +24,8 @@ Slide {
         Column {
             anchors.horizontalCenter: parent.horizontalCenter
             Clock {
-                color: color.on_background
+                color: color.on_surface
+                format: "yyyy/mm/dd hh:mm:ss"
                 anchors.margins: 10
             }
             Row {
@@ -35,6 +36,7 @@ Slide {
                         viewNetwork.visible = true;
                     }
                 }
+                Battery {}
             }
         }
         Column {
@@ -63,7 +65,8 @@ Slide {
             }
             Row {
                 IconButton {
-                    icon: "system-shutdown"
+                    icon: "system-shutdown-symbolic"
+                    iconSize: 40
                     onClicked: {
                         sessionConfirmText.text = "Shutdown?";
                         sessionConfirm.visible = true;
@@ -71,7 +74,8 @@ Slide {
                     }
                 }
                 IconButton {
-                    icon: "system-reboot"
+                    icon: "system-reboot-symbolic"
+                    iconSize: 40
                     onClicked: {
                         sessionConfirmText.text = "Reboot?";
                         sessionConfirm.visible = true;
@@ -79,7 +83,8 @@ Slide {
                     }
                 }
                 IconButton {
-                    icon: "system-log-out"
+                    icon: "system-log-out-symbolic"
+                    iconSize: 40
                     onClicked: {
                         sessionConfirmText.text = "Logout?";
                         sessionConfirm.visible = true;
@@ -87,11 +92,13 @@ Slide {
                     }
                 }
                 IconButton {
-                    icon: "system-suspend"
+                    icon: "system-suspend-symbolic"
+                    iconSize: 40
                     command: "hyprlock & disown;sleep 0.5;systemctl suspend"
                 }
                 IconButton {
-                    icon: "system-lock-screen"
+                    icon: "system-lock-screen-symbolic"
+                    iconSize: 40
                     command: "hyprlock & disown"
                 }
             }

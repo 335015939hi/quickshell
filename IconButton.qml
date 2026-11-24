@@ -1,58 +1,48 @@
 import QtQuick
 import Quickshell
 
-Item {
+HoverArea {
     id: root
 
     property string icon: "system-shutdown"
+    property string text: ""
+    property color textColor: "#000000"
     property string command: ""
 
-    property int buttonSize: 40
     property int iconSize: 24
+    property int textPixelSize: iconSize / 2
+    property int buttonMargins: 16
     property int cornerRadius: 8
 
     property color hoverColor: "#404040"
 
-    signal clicked
+    implicitWidth: iconSize + iconText.implicitWidth + buttonMargins
+    implicitHeight: Math.max(iconText.implicitHeight, iconSize) + buttonMargins
 
-    implicitWidth: buttonSize
-    implicitHeight: buttonSize
-
-    Rectangle {
-        anchors.fill: parent
-        radius: root.cornerRadius
-        color: mouseArea.containsMouse ? root.hoverColor : "transparent"
-
-        Behavior on color {
-            ColorAnimation {
-                duration: 120
-            }
-        }
-    }
-
-    Image {
+    Row {
         anchors.centerIn: parent
+        Image {
+            anchors.verticalCenter: parent.verticalCenter
 
-        width: root.iconSize
-        height: root.iconSize
+            width: root.iconSize
+            height: root.iconSize
 
-        source: Quickshell.iconPath(root.icon)
-        sourceSize: Qt.size(root.iconSize, root.iconSize)
-        fillMode: Image.PreserveAspectFit
+            source: Quickshell.iconPath(root.icon)
+            sourceSize: Qt.size(root.iconSize, root.iconSize)
+            fillMode: Image.PreserveAspectFit
+        }
+
+        Text {
+            id: iconText
+            anchors.verticalCenter: parent.verticalCenter
+            text: root.text
+            font.pixelSize: root.textPixelSize
+            color: root.textColor
+        }
     }
 
-    MouseArea {
-        id: mouseArea
-        anchors.fill: parent
-
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-
-        onClicked: {
-            if (root.command !== "")
-                Quickshell.execDetached(["/bin/sh", "-c", root.command]);
-
-            root.clicked();
-        }
+    onClicked: {
+        if (root.command !== "")
+            Quickshell.execDetached(["/bin/sh", "-c", root.command]);
     }
 }

@@ -1,6 +1,6 @@
 import Quickshell
-import Quickshell.Wayland
 import QtQuick
+import qs
 
 Text {
     property string format: "hh:mm:ss"
@@ -8,16 +8,6 @@ Text {
     property int textSize: 16
     font {
         pixelSize: textSize
-        family: "Cormorant Garamond"
     }
-    text: Qt.formatDateTime(currentTime, format)
-
-    Timer {
-        interval: 1000
-        repeat: true
-        running: true
-        triggeredOnStart: true
-
-        onTriggered: currentTime = new Date()
-    }
+    text: Qt.formatDateTime(Globals.currentTime, format)
 }

@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Wayland
 import QtQuick
 import Quickshell.Services.Notifications
+import qs.widgets
 
 ShellRoot {
     Matugen {
@@ -16,13 +17,21 @@ ShellRoot {
         anchors.right: true
         roundCornerBottomLeft: true
         exclusionMode: ExclusionMode.Ignore
-        implicitHeight: clock.implicitHeight + 3
-        implicitWidth: clock.implicitWidth + 6
-        background: color.primary_a
-        Clock {
-            id: clock
-            color: color.on_primary
+        implicitHeight: topLeftBarRow.implicitHeight + 3
+        implicitWidth: topLeftBarRow.implicitWidth + 6
+        background: color.surface_a
+        Row {
+            id: topLeftBarRow
             anchors.horizontalCenter: parent.horizontalCenter
+            Clock {
+                color: color.on_surface
+                format: "hh:mm"
+            }
+            Battery {
+                buttonMargins: 2
+                iconSize: 20
+                showText: false
+            }
         }
     }
     RightBar {}
