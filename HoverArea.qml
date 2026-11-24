@@ -2,10 +2,7 @@ import QtQuick
 
 MouseArea {
     id: root
-    Matugen {
-        id: color
-    }
-    property color hoverColor: color.primary_container_a
+    property color hoverColor: Matugen.primary_container_a
     property int cornerRadius: implicitWidth / 4
 
     implicitWidth: content.implicitWidth

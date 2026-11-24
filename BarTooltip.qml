@@ -1,85 +1,86 @@
-// BarTooltip.qml
-// Delayed-appearance tooltip for bar widgets. Drops a small bubble below
-// (or above, via FlipY) an anchor item after the user hovers for `delay`
-// ms; vanishes immediately when the user moves away. The consumer drives
-// the `show` property (typically `mouseArea.containsMouse`) and supplies
-// `anchorItem` plus the `text`.
-//
-// Pattern stolen from `tray/Tray.qml:169-218` and generalized.
-//
-// Usage:
-//
-//   MouseArea {
-//       id: ma
-//       hoverEnabled: true
-//       BarTooltip {
-//           anchorItem: ma
-//           text: "Volume 75%"
-//           show: ma.containsMouse && !popup.visible   // hide when popup opens
-//       }
-//   }
-
 import QtQuick
 import Quickshell
 import qs
 
-PopupWindow {
-    id: tip
-    Matugen {
-        id: color
-    }
+Item {
+    id: root
 
-    property Item anchorItem
+    // The wrapper should not take up layout space.
+    width: 0
+    height: 0
+
+    // Properties
+    property Item anchorItem: parent
     property string text: ""
-    property bool show: false
+    property bool show: parent ? parent.containsMouse : false
     property int delay: 350
 
-    // Internal: only flip true after the delay timer fires.
+    // Internal state
     property bool _shown: false
 
-    color: "transparent"
-    visible: _shown && text !== ""
+    // Tooltip window
+    PopupWindow {
+        id: tip
 
-    anchor.item: anchorItem
-    anchor.rect.x: anchorItem ? (anchorItem.width - tip.width) / 2 : 0
-    anchor.rect.y: anchorItem ? anchorItem.height + 6 : 0
+        color: "transparent"
+        visible: root._shown && root.text !== ""
+        grabFocus: false
 
-    implicitWidth: Math.max(40, tipText.implicitWidth + 16)
-    implicitHeight: tipText.implicitHeight + 8
+        // Position relative to the anchor item.
+        anchor.item: root.anchorItem
 
-    Timer {
-        id: showTimer
-        interval: tip.delay
-        onTriggered: tip._shown = true
-    }
+        anchor.rect.x: root.anchorItem ? (root.anchorItem.width - tip.implicitWidth) / 2 : 0
 
-    onShowChanged: {
-        if (show && text !== "") {
-            showTimer.restart();
-        } else {
-            showTimer.stop();
-            tip._shown = false;
+        anchor.rect.y: root.anchorItem ? root.anchorItem.height + 6 : 0
+
+        implicitWidth: Math.max(40, tipText.implicitWidth + 16)
+        implicitHeight: tipText.implicitHeight + 8
+
+        Rectangle {
+            anchors.fill: parent
+            color: Matugen.surface_a
+            radius: tip.implicitHeight / 2
+
+            Text {
+                id: tipText
+
+                anchors.centerIn: parent
+                text: root.text
+                color: Matugen.on_surface
+                elide: Text.ElideRight
+            }
+        }
+        mask: Region {
+            width: tip.width
+            height: tip.height
+            intersection: Intersection.Xor
         }
     }
 
-    // If the text becomes empty mid-display, drop the tooltip to avoid an
-    // empty bubble flashing.
-    onTextChanged: {
-        if (text === "" && _shown)
-            _shown = false;
+    // Delayed appearance
+    Timer {
+        id: showTimer
+        interval: root.delay
+
+        onTriggered: {
+            root._shown = true;
+        }
     }
 
-    Rectangle {
-        anchors.fill: parent
-        color: color.surface_a
-        radius: tip.implicitHeight / 2
+    // Show/hide handling
+    onShowChanged: {
+        if (root.show && root.text !== "") {
+            showTimer.restart();
+        } else {
+            showTimer.stop();
+            root._shown = false;
+        }
+    }
 
-        Text {
-            id: tipText
-            anchors.centerIn: parent
-            text: tip.text
-            color: color.on_surface
-            elide: Text.ElideRight
+    // Hide immediately if text becomes empty.
+    onTextChanged: {
+        if (root.text === "" && root._shown) {
+            root._shown = false;
         }
     }
 }

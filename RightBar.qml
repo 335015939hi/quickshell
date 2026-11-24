@@ -4,10 +4,7 @@ import qs.widgets
 
 Slide {
     id: root
-    Matugen {
-        id: color
-    }
-    background: color.surface_a
+    background: Matugen.surface_a
     edge: "right"
     slideWidth: 500
     focusable: true
@@ -24,7 +21,7 @@ Slide {
         Column {
             anchors.horizontalCenter: parent.horizontalCenter
             Clock {
-                color: color.on_surface
+                color: Matugen.on_surface
                 format: "yyyy/mm/dd hh:mm:ss"
                 anchors.margins: 10
             }
@@ -49,7 +46,7 @@ Slide {
                 Text {
                     id: sessionConfirmText
                     anchors.verticalCenter: parent.verticalCenter
-                    color: color.on_background
+                    color: Matugen.on_background
                 }
                 IconButton {
                     command: sessionConfirm.command
@@ -119,11 +116,11 @@ Slide {
         NetworkWidget {
             width: parent.width
             anchors.margins: 15
-            cardColor: color.surface_a
-            innerColor: color.surface_container_a
-            textColor: color.on_surface
-            mutedTextColor: color.on_surface_variant
-            accentColor: color.primary
+            cardColor: Matugen.surface_a
+            innerColor: Matugen.surface_container_a
+            textColor: Matugen.on_surface
+            mutedTextColor: Matugen.on_surface_variant
+            accentColor: Matugen.primary
         }
     }
 }

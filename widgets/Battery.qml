@@ -15,9 +15,6 @@ import qs
 
 IconButton {
     id: root
-    Matugen {
-        id: color
-    }
 
     property bool showText: true
 
@@ -45,12 +42,12 @@ IconButton {
     icon: icon()
 
     text: showText ? batteryText(false) : ""
-    textColor: color.on_surface
+    textColor: Matugen.on_surface
 
     BarTooltip {
-        anchorItem: root
+        //anchorItem: root
         text: batteryText(true)
 
-        show: root.containsMouse
+        //show: root.containsMouse
     }
 }

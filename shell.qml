@@ -5,9 +5,6 @@ import Quickshell.Services.Notifications
 import qs.widgets
 
 ShellRoot {
-    Matugen {
-        id: color
-    }
     NotificationService {
         id: notifications
     }
@@ -19,12 +16,12 @@ ShellRoot {
         exclusionMode: ExclusionMode.Ignore
         implicitHeight: topLeftBarRow.implicitHeight + 3
         implicitWidth: topLeftBarRow.implicitWidth + 6
-        background: color.surface_a
+        background: Matugen.surface_a
         Row {
             id: topLeftBarRow
             anchors.horizontalCenter: parent.horizontalCenter
             Clock {
-                color: color.on_surface
+                color: Matugen.on_surface
                 format: "hh:mm"
             }
             Battery {
@@ -37,7 +34,7 @@ ShellRoot {
     RightBar {}
     NotificationPopups {
         notificationModel: notifications.trackedNotifications
-        background: color.primary_a
-        foreground: color.on_primary
+        background: Matugen.primary_a
+        foreground: Matugen.on_primary
     }
 }
