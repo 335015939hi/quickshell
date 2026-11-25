@@ -1,6 +1,8 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
+import qs
 
 Item {
     id: root
@@ -16,7 +18,7 @@ Item {
     property string scanError: ""
 
     signal wallpaperSelected(string path)
-    signal backRequested()
+    signal backRequested
 
     function imageUrl(path) {
         return "file://" + path.split("/").map(part => encodeURIComponent(part)).join("/");
@@ -24,15 +26,15 @@ Item {
 
     function parseFiles(output) {
         const extensions = ["avif", "bmp", "gif", "jpeg", "jpg", "jxl", "png", "svg", "tif", "tiff", "webp"];
-        const files = output.split("\n")
-            .map(path => path.replace(/\r$/, ""))
-            .filter(path => path.length > 0)
-            .filter(path => {
-                const name = path.split("/").pop();
-                const dot = name.lastIndexOf(".");
-                return dot >= 0 && extensions.includes(name.slice(dot + 1).toLowerCase());
-            });
-        files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+        const files = output.split("\n").map(path => path.replace(/\r$/, "")).filter(path => path.length > 0).filter(path => {
+            const name = path.split("/").pop();
+            const dot = name.lastIndexOf(".");
+            return dot >= 0 && extensions.includes(name.slice(dot + 1).toLowerCase());
+        });
+        files.sort((a, b) => a.localeCompare(b, undefined, {
+                numeric: true,
+                sensitivity: "base"
+            }));
         wallpapers = files;
         scanError = "";
     }
@@ -58,8 +60,12 @@ Item {
         id: scanner
         command: ["find", "-L", root.wallpaperDirectory, "-maxdepth", "1", "-type", "f"]
         running: true
-        stdout: StdioCollector { onStreamFinished: root.parseFiles(text) }
-        stderr: StdioCollector { onStreamFinished: root.scanError = text.trim() }
+        stdout: StdioCollector {
+            onStreamFinished: root.parseFiles(text)
+        }
+        stderr: StdioCollector {
+            onStreamFinished: root.scanError = text.trim()
+        }
     }
 
     onWallpapersChanged: {
@@ -79,14 +85,14 @@ Item {
             height: 28
             spacing: 8
             Text {
-                text: "Wallpapers"
+                text: "Select wallpaper"
                 anchors.verticalCenter: parent.verticalCenter
                 color: Matugen.on_surface
                 font.pixelSize: 17
                 font.bold: true
             }
             Text {
-                text: root.wallpapers.length + " images · all monitors"
+                text: root.wallpapers.length + " images"
                 anchors.verticalCenter: parent.verticalCenter
                 color: Matugen.on_surface_variant
                 font.pixelSize: 11
@@ -104,47 +110,67 @@ Item {
             model: root.wallpapers
             cellWidth: width / root.columnCount
             cellHeight: root.cardHeight + root.gridSpacing
-
             delegate: Item {
                 required property string modelData
                 required property int index
+
                 width: grid.cellWidth - root.gridSpacing
                 height: root.cardHeight
 
+                Image {
+                    id: thumbnail
+                    anchors.fill: parent
+                    source: root.imageUrl(modelData)
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    cache: true
+                    smooth: true
+                    visible: false
+                }
+
+                // Rounded, opaque mask.
+                Rectangle {
+                    id: thumbnailMask
+                    anchors.fill: thumbnail
+                    radius: 9
+                    color: "white"
+                    visible: false
+                    layer.enabled: true
+                }
+
+                // Render the image through the rounded mask.
+                MultiEffect {
+                    anchors.fill: thumbnail
+                    source: thumbnail
+                    maskEnabled: true
+                    maskSource: thumbnailMask
+                }
+
+                // Selection border, rendered above the image.
                 Rectangle {
                     anchors.fill: parent
                     radius: 9
-                    color: Matugen.surface_container_a
+                    color: "transparent"
                     border.width: grid.currentIndex === index ? 2 : 1
-                    border.color: grid.currentIndex === index ? Matugen.primary : Matugen.surface_a
-                    clip: true
-
-                    Image {
-                        anchors { top: parent.top; left: parent.left; right: parent.right; margins: 4 }
-                        height: Math.max(1, root.cardHeight - 34)
-                        source: root.imageUrl(modelData)
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        cache: true
-                        smooth: true
+                    border.color: grid.currentIndex === index ? Matugen.primary : "transparent"
+                    Behavior on border.color {
+                        ColorAnimation {
+                            duration: Globals.animationTime
+                            easing.type: Easing.InOutCubic
+                        }
                     }
-                    Text {
-                        anchors { left: parent.left; right: parent.right; bottom: parent.bottom; leftMargin: 6; rightMargin: 6; bottomMargin: 5 }
-                        text: modelData.substring(modelData.lastIndexOf("/") + 1)
-                        color: Matugen.on_surface
-                        font.pixelSize: 11
-                        elide: Text.ElideRight
-                    }
-                }
 
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onEntered: grid.currentIndex = index
-                    onClicked: {
-                        grid.currentIndex = index;
-                        grid.forceActiveFocus();
-                        root.select(index);
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+
+                        onEntered: grid.currentIndex = index
+
+                        onClicked: {
+                            grid.currentIndex = index;
+                            grid.forceActiveFocus();
+                            root.select(index);
+                        }
                     }
                 }
             }
@@ -162,12 +188,24 @@ Item {
                 let next = grid.currentIndex < 0 ? 0 : grid.currentIndex;
                 let handled = true;
                 switch (event.key) {
-                case Qt.Key_Left: next--; break;
-                case Qt.Key_Right: next++; break;
-                case Qt.Key_Up: next -= root.columnCount; break;
-                case Qt.Key_Down: next += root.columnCount; break;
-                case Qt.Key_Home: next = 0; break;
-                case Qt.Key_End: next = count - 1; break;
+                case Qt.Key_Left:
+                    next--;
+                    break;
+                case Qt.Key_Right:
+                    next++;
+                    break;
+                case Qt.Key_Up:
+                    next -= root.columnCount;
+                    break;
+                case Qt.Key_Down:
+                    next += root.columnCount;
+                    break;
+                case Qt.Key_Home:
+                    next = 0;
+                    break;
+                case Qt.Key_End:
+                    next = count - 1;
+                    break;
                 case Qt.Key_PageUp:
                     next -= root.columnCount * Math.max(1, Math.floor(grid.height / grid.cellHeight));
                     break;
@@ -180,7 +218,9 @@ Item {
                     event.accepted = true;
                     root.select(next);
                     return;
-                default: handled = false; break;
+                default:
+                    handled = false;
+                    break;
                 }
                 if (!handled)
                     return;
@@ -196,9 +236,7 @@ Item {
         anchors.centerIn: grid
         width: grid.width - 24
         visible: root.wallpapers.length === 0
-        text: scanner.running ? "Scanning for wallpapers…"
-            : root.scanError !== "" ? root.scanError
-            : "No supported image files found in\n" + root.wallpaperDirectory
+        text: scanner.running ? "Scanning for wallpapers…" : root.scanError !== "" ? root.scanError : "No supported image files found in\n" + root.wallpaperDirectory
         color: Matugen.on_surface_variant
         font.pixelSize: 12
         horizontalAlignment: Text.AlignHCenter
