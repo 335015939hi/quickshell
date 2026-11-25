@@ -40,7 +40,7 @@ PanelWindow {
             if (!query)
                 return applications.sort((a, b) => a.name.localeCompare(b.name));
 
-            const tokens = query.split(/\\s+/).filter(token => token.length > 0);
+            const tokens = query.split(/\s+/).filter(token => token.length > 0);
 
             function haystack(app) {
                 return [app.name, app.genericName, app.comment,
