@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Io
 import Quickshell.Networking
+import qs
 
 // A reusable NetworkManager-backed network control widget.
 // Import this file as a QML type and place NetworkWidget wherever it is needed.
@@ -461,6 +462,12 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
+        }
+
+        InputBox {
+            width: root.width
+            label: "asdasdasdasdasdasdd"
+            value:"Asdasd"
         }
 
         // Global Wi-Fi radio switch
