@@ -3,6 +3,7 @@ import Quickshell.Wayland
 import QtQuick
 import Quickshell.Services.Notifications
 import qs.widgets
+import qs.desktop
 
 ShellRoot {
     NotificationService {
@@ -32,6 +33,7 @@ ShellRoot {
         }
     }
     RightBar {}
+    Desktop {}
     NotificationPopups {
         notificationModel: notifications.trackedNotifications
         background: Matugen.primary_a
