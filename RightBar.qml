@@ -11,12 +11,22 @@ Slide {
 
     onHide: function () {
         sessionConfirm.opened = false;
-        viewDefault.visible = true;
+        viewDefault.opened = true;
         viewNetwork.visible = false;
+        viewWallpaperPick.opened = false;
     }
 
     Item {
         id: viewDefault
+        property bool opened: true
+        opacity: opened ? 1 : 0
+        visible: opacity != 0
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Globals.animationTime
+                easing.type: Easing.OutCubic
+            }
+        }
         anchors.fill: parent
         Column {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -27,11 +37,19 @@ Slide {
             Row {
                 Network {
                     onClicked: {
-                        viewDefault.visible = false;
+                        viewDefault.opened = false;
                         viewNetwork.visible = true;
                     }
                 }
                 Battery {}
+                IconButton {
+                    icon: "viewimage-symbolic"
+                    tooltip: "Set wallpaper"
+                    onClicked: {
+                        viewDefault.opened = false;
+                        viewWallpaperPick.opened = true;
+                    }
+                }
             }
         }
         Column {
@@ -160,7 +178,7 @@ Slide {
             icon: "go-previous"
             onClicked: function () {
                 viewNetwork.visible = false;
-                viewDefault.visible = true;
+                viewDefault.opened = true;
             }
         }
         NetworkWidget {
@@ -172,5 +190,26 @@ Slide {
             mutedTextColor: Matugen.on_surface_variant
             accentColor: Matugen.primary
         }
+    }
+    Column {
+        id: viewWallpaperPick
+        anchors.fill: parent
+        property bool opened: true
+        opacity: opened ? 1 : 0
+        visible: opacity != 0
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Globals.animationTime
+                easing.type: Easing.OutCubic
+            }
+        }
+        IconButton {
+            icon: "go-previous"
+            onClicked: function () {
+                viewWallpaperPick.opened = false;
+                viewDefault.opened = true;
+            }
+        }
+        WallpaperPicker {}
     }
 }
