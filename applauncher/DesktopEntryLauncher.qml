@@ -66,18 +66,14 @@ Item {
             launchFailed(entry.name, "Desktop-entry index is still loading.");
             return false;
         }
-        const desktopFile = desktopFilesById[entry.id];
-        if (!desktopFile) {
-            launchFailed(entry.name, "Could not resolve desktop file ID '" + entry.id + "'.");
-            return false;
-        }
         if (launchProcess.running) {
             launchFailed(entry.name, "Another launch is in progress.");
             return false;
         }
         pendingApplicationName = entry.name;
         launchError = "";
-        launchProcess.command = ["gio", "launch", desktopFile];
+        launchProcess.command = ["gtk-launch", entry.id];
+        console.log("launching " + entry.id);
         launchProcess.running = true;
         return true;
     }
