@@ -181,14 +181,22 @@ Slide {
                 viewDefault.opened = true;
             }
         }
-        NetworkWidget {
+        Loader {
+            id: networkWidgetLoader
             width: parent.width
-            anchors.margins: 15
-            cardColor: Matugen.surface_a
-            innerColor: Matugen.surface_container_a
-            textColor: Matugen.on_surface
-            mutedTextColor: Matugen.on_surface_variant
-            accentColor: Matugen.primary
+            active: viewNetwork.visible
+
+            sourceComponent: Component {
+                NetworkWidget {
+                    width: networkWidgetLoader.width
+                    anchors.margins: 15
+                    cardColor: Matugen.surface_a
+                    innerColor: Matugen.surface_container_a
+                    textColor: Matugen.on_surface
+                    mutedTextColor: Matugen.on_surface_variant
+                    accentColor: Matugen.primary
+                }
+            }
         }
     }
     Item {
