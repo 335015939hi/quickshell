@@ -311,7 +311,8 @@ Item {
     }
 
     onVisibleChanged: setWifiScanning(visible)
-    Component.onCompleted: scanWifiDevices()
+    Component.onCompleted: setWifiScanning(visible)
+    Component.onDestruction: setWifiScanning(false)
 
     Connections {
         target: Networking

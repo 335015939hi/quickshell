@@ -268,6 +268,7 @@ PanelWindow {
                     id: appGrid
                     anchors.fill: parent
                     clip: true
+                    visible: root.opened || launcher.opacity > 0
                     cellWidth: 180
                     cellHeight: 142
                     model: filteredApplications
@@ -314,10 +315,11 @@ PanelWindow {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     width: 46
                                     height: 46
-                                    source: Quickshell.iconPath(modelData.icon || "application-x-executable")
+                                    source: appGrid.visible ? Quickshell.iconPath(modelData.icon || "application-x-executable") : ""
                                     sourceSize: Qt.size(46, 46)
                                     fillMode: Image.PreserveAspectFit
                                     asynchronous: true
+                                    cache: false
                                 }
 
                                 Text {
