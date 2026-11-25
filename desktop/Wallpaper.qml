@@ -15,9 +15,6 @@ Scope {
 
     property int transitionDuration: Globals.animationTime * 4
 
-    // Avoid decoding wallpapers until the desktop overlay is in use.
-    property bool active: true
-
     // Shell command executed through `sh -c` on every wallpaper change.
     // It can use these variables:
     //   $MONITOR    monitor name, e.g. "DP-1"
@@ -154,14 +151,7 @@ Scope {
             if (monitorWindow.monitorName !== name)
                 continue;
 
-            if (active)
-                return monitorWindow.changeWallpaper(normalized);
-
-            // Save the selection without decoding it while the renderer sleeps.
-            rememberWallpaper(name, normalized);
-            monitorWindow.currentPath = normalized;
-            runChangeCommand(name, normalized, "initial");
-            return true;
+            return monitorWindow.changeWallpaper(normalized);
         }
 
         console.warn("Wallpaper: monitor is not connected:", name);
@@ -177,16 +167,8 @@ Scope {
             return false;
 
         const instances = monitorWindows.instances;
-        for (let i = 0; i < instances.length; ++i) {
-            const monitorWindow = instances[i];
-            if (active) {
-                monitorWindow.changeWallpaper(normalized);
-            } else {
-                rememberWallpaper(monitorWindow.monitorName, normalized);
-                monitorWindow.currentPath = normalized;
-                runChangeCommand(monitorWindow.monitorName, normalized, "initial");
-            }
-        }
+        for (let i = 0; i < instances.length; ++i)
+            instances[i].changeWallpaper(normalized);
 
         return true;
     }
@@ -236,7 +218,6 @@ Scope {
             readonly property string monitorName: modelData.name
 
             screen: modelData
-            visible: root.active
             anchors {
                 top: true
                 bottom: true
@@ -574,7 +555,7 @@ Scope {
                 }
             }
 
-            function restoreWallpaper() {
+            Component.onCompleted: {
                 root.ensureStateLoaded();
 
                 const saved = root.wallpapersByMonitor[monitorName] || "";
@@ -583,57 +564,6 @@ Scope {
 
                 if (initial !== "")
                     loadInitial(initial, false);
-                else {
-                    currentPath = "";
-                    setLayerSource(imageLayerA, "");
-                    setLayerSource(imageLayerB, "");
-                }
-            }
-
-            function suspendWallpaper() {
-                if (transitionAnimation.running)
-                    transitionAnimation.stop();
-
-                initialPath = "";
-                initialChangeShouldPersist = false;
-                pendingPath = "";
-                transitionPath = "";
-
-                // Clear both sources so their decoded pixel buffers can be released.
-                setLayerSource(imageLayerA, "");
-                setLayerSource(imageLayerB, "");
-
-                frontLayer = imageLayerA;
-                backLayer = imageLayerB;
-
-                frontLayer.x = 0;
-                frontLayer.y = 0;
-                frontLayer.scale = 1;
-                frontLayer.opacity = 1;
-                frontLayer.z = 1;
-
-                backLayer.x = 0;
-                backLayer.y = 0;
-                backLayer.scale = 1;
-                backLayer.opacity = 0;
-                backLayer.z = 0;
-            }
-
-            Connections {
-                target: root
-
-                function onActiveChanged() {
-                    if (root.active)
-                        monitorWindow.restoreWallpaper();
-                    else
-                        monitorWindow.suspendWallpaper();
-                }
-            }
-
-            Component.onCompleted: {
-                root.ensureStateLoaded();
-                if (root.active)
-                    restoreWallpaper();
             }
         }
     }
