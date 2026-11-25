@@ -168,8 +168,10 @@ Item {
                 Image {
                     anchors.fill: parent
                     source: root.notification.image
+                    sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
+                    cache: false
                 }
             }
 
