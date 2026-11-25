@@ -24,8 +24,11 @@ PanelWindow {
 
     DesktopEntryLauncher {
         id: desktopEntryLauncher
+        onLaunchSucceeded: root.closeLauncher()
         onLaunchFailed: (applicationName, reason) => {
-            root.launchError = applicationName + ": " + reason;
+            root.launchError = applicationName.length > 0
+                ? applicationName + ": " + reason
+                : reason;
             console.warn("App launcher:", root.launchError);
         }
     }
@@ -89,8 +92,7 @@ PanelWindow {
     }
 
     function launchApplication(app) {
-        if (desktopEntryLauncher.launch(app))
-            closeLauncher();
+        desktopEntryLauncher.launch(app);
     }
 
     function launchSelected() {
@@ -374,14 +376,6 @@ PanelWindow {
                     }
                 }
 
-                Text {
-                    anchors.left: parent.left
-                    anchors.bottom: parent.bottom
-                    visible: !desktopEntryLauncher.ready
-                    text: "Indexing desktop files..."
-                    color: Matugen.on_surface_variant
-                    font.pixelSize: 11
-                }
             }
 
             Text {
