@@ -13,7 +13,7 @@ PanelWindow {
     anchors.left: true
     anchors.right: true
     color: "transparent"
-    WlrLayershell.layer: WlrLayer.Background
+    WlrLayershell.layer: WlrLayer.Bottom
     Item {
         id: desktop
         visible: opacity != 0
