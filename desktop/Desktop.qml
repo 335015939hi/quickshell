@@ -27,7 +27,9 @@ PanelWindow {
         }
 
         DesktopLayout {}
-        Wallpaper {}
+        Wallpaper {
+            active: root.opened
+        }
     }
 
     Process {
