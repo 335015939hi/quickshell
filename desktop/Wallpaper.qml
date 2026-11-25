@@ -478,8 +478,9 @@ Scope {
                         anchors.fill: parent
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
-                        cache: true
+                        cache: false
                         smooth: true
+                        sourceSize: Qt.size(Math.ceil(scene.width * Screen.devicePixelRatio), Math.ceil(scene.height * Screen.devicePixelRatio))
                         onStatusChanged: monitorWindow.handleImageStatus(imageLayerA, status)
                     }
                 }
@@ -498,8 +499,9 @@ Scope {
                         anchors.fill: parent
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
-                        cache: true
+                        cache: false
                         smooth: true
+                        sourceSize: Qt.size(Math.ceil(scene.width * Screen.devicePixelRatio), Math.ceil(scene.height * Screen.devicePixelRatio))
                         onStatusChanged: monitorWindow.handleImageStatus(imageLayerB, status)
                     }
                 }

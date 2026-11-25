@@ -199,12 +199,19 @@ Slide {
         visible: opacity != 0
 
         Behavior on opacity {
-            NumberAnimation { duration: Globals.animationTime; easing.type: Easing.OutCubic }
+            NumberAnimation {
+                duration: Globals.animationTime
+                easing.type: Easing.OutCubic
+            }
         }
 
         onOpenedChanged: {
             if (opened)
-                Qt.callLater(() => wallpaperPicker.focusGrid());
+                Qt.callLater(() => {
+                    const picker = wallpaperPickerLoader.item;
+                    if (picker)
+                        picker.focusGrid();
+                });
         }
 
         IconButton {
@@ -218,8 +225,9 @@ Slide {
             }
         }
 
-        WallpaperPicker {
-            id: wallpaperPicker
+        Loader {
+            id: wallpaperPickerLoader
+
             anchors {
                 top: wallpaperBack.bottom
                 bottom: parent.bottom
@@ -227,13 +235,21 @@ Slide {
                 right: parent.right
                 margins: 8
             }
-            onBackRequested: {
-                viewWallpaperPick.opened = false;
-                viewDefault.opened = true;
-            }
-            onWallpaperSelected: {
-                viewWallpaperPick.opened = false;
-                viewDefault.opened = true;
+
+            active: viewWallpaperPick.visible
+
+            sourceComponent: Component {
+                WallpaperPicker {
+                    onBackRequested: {
+                        viewWallpaperPick.opened = false;
+                        viewDefault.opened = true;
+                    }
+
+                    onWallpaperSelected: {
+                        viewWallpaperPick.opened = false;
+                        viewDefault.opened = true;
+                    }
+                }
             }
         }
     }

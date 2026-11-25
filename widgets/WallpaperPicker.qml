@@ -123,9 +123,10 @@ Item {
                     source: root.imageUrl(modelData)
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
-                    cache: true
+                    cache: false
                     smooth: true
                     visible: false
+                    sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
                 }
 
                 // Rounded, opaque mask.
