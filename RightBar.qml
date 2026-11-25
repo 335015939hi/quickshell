@@ -91,6 +91,7 @@ Slide {
                 }
                 IconButton {
                     command: sessionConfirm.command
+                    tooltip: "Confirm"
                     icon: "dialog-ok"
                     onClicked: {
                         sessionConfirm.opened = false;
@@ -98,6 +99,7 @@ Slide {
                 }
                 IconButton {
                     icon: "dialog-cancel"
+                    tooltip: "Cancel"
                     onClicked: {
                         sessionConfirm.opened = false;
                     }
@@ -107,6 +109,7 @@ Slide {
                 IconButton {
                     icon: "system-shutdown-symbolic"
                     iconSize: 40
+                    tooltip: "Shutdown"
                     onClicked: {
                         sessionConfirm.setText("Shutdown?");
                         sessionConfirm.opened = true;
@@ -116,6 +119,7 @@ Slide {
                 IconButton {
                     icon: "system-reboot-symbolic"
                     iconSize: 40
+                    tooltip: "Reboot"
                     onClicked: {
                         sessionConfirm.setText("Reboot?");
                         sessionConfirm.opened = true;
@@ -125,6 +129,7 @@ Slide {
                 IconButton {
                     icon: "system-log-out-symbolic"
                     iconSize: 40
+                    tooltip: "Logout"
                     onClicked: {
                         sessionConfirm.setText("Logout?");
                         sessionConfirm.opened = true;
@@ -135,11 +140,13 @@ Slide {
                     icon: "system-suspend-symbolic"
                     iconSize: 40
                     command: "hyprlock & disown;sleep 0.5;systemctl suspend"
+                    tooltip: "Sleep"
                 }
                 IconButton {
                     icon: "system-lock-screen-symbolic"
                     iconSize: 40
                     command: "hyprlock & disown"
+                    tooltip: "Lock screen"
                 }
             }
         }

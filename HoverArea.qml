@@ -4,6 +4,7 @@ MouseArea {
     id: root
     property color hoverColor: Matugen.primary_container_a
     property int cornerRadius: implicitWidth / 4
+    property string tooltip: ""
 
     implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight
@@ -19,5 +20,8 @@ MouseArea {
                 duration: Globals.animationTime
             }
         }
+    }
+    BarTooltip {
+        text: root.tooltip
     }
 }

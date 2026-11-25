@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import qs
 
 Item {
@@ -13,7 +14,8 @@ Item {
     property Item anchorItem: parent
     property string text: ""
     property bool show: parent ? parent.containsMouse : false
-    property int delay: 350
+    property int delay: Globals.animationTime * 2
+    property int tooltipOffset: 8
 
     // Internal state
     property bool _shown: false
@@ -21,17 +23,33 @@ Item {
     // Tooltip window
     PopupWindow {
         id: tip
+        readonly property var screen: QsWindow.screen
 
         color: "transparent"
-        grabFocus: false
+        //grabFocus: false
         visible: tipRect.opacity != 0
 
         // Position relative to the anchor item.
         anchor.item: root.anchorItem
 
         anchor.rect.x: root.anchorItem ? (root.anchorItem.width - tip.implicitWidth) / 2 : 0
-
-        anchor.rect.y: root.anchorItem ? root.anchorItem.height + 6 : 0
+        anchor.rect.y: {
+            if (!root.anchorItem) {
+                return 0;
+            }
+            var y = root.anchorItem.mapToGlobal(0, 0).y + (root.anchorItem.height / 2);
+            // QsWindow.window may be null on init. check for null to prevent warnings
+            var screen = root.anchorItem.QsWindow.window;
+            if (screen == null) {
+                return 0;
+            }
+            screen = screen.screen;
+            if (y > screen.y + screen.height / 2) {
+                return -tip.implicitHeight - root.tooltipOffset;
+            } else {
+                return anchorItem.height + root.tooltipOffset;
+            }
+        }
 
         implicitWidth: Math.max(40, tipText.implicitWidth + 16)
         implicitHeight: tipText.implicitHeight + 8
@@ -40,7 +58,7 @@ Item {
             id: tipRect
             anchors.fill: parent
             color: Matugen.surface_a
-            radius: tip.implicitHeight / 2
+            radius: tipText.font.pixelSize
             opacity: (root._shown && root.text !== "") ? 1 : 0
             Behavior on opacity {
                 NumberAnimation {
@@ -51,17 +69,16 @@ Item {
 
             Text {
                 id: tipText
-
                 anchors.centerIn: parent
                 text: root.text
                 color: Matugen.on_surface
                 elide: Text.ElideRight
             }
         }
+
         mask: Region {
-            width: tip.width
-            height: tip.height
-            intersection: Intersection.Xor
+            width: 0
+            height: 0
         }
     }
 

@@ -39,15 +39,9 @@ IconButton {
         text += dispCharge ? (_charging ? "% (Charging)" : (UPowerDeviceState.FullyCharged ? "% (Full)" : "%")) : "%";
         return text;
     }
-    icon: icon()
 
+    icon: icon()
+    tooltip: batteryText(true)
     text: showText ? batteryText(false) : ""
     textColor: Matugen.on_surface
-
-    BarTooltip {
-        //anchorItem: root
-        text: batteryText(true)
-
-        //show: root.containsMouse
-    }
 }

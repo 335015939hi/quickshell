@@ -18,7 +18,5 @@ HoverArea {
         color: root.color
         text: Qt.formatDateTime(Globals.currentTime, root.format)
     }
-    BarTooltip {
-        text: Qt.formatDateTime(Globals.currentTime, root.tooltipFormat)
-    }
+    tooltip: Qt.formatDateTime(Globals.currentTime, root.tooltipFormat)
 }
