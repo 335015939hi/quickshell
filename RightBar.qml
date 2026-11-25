@@ -191,25 +191,50 @@ Slide {
             accentColor: Matugen.primary
         }
     }
-    Column {
+    Item {
         id: viewWallpaperPick
         anchors.fill: parent
-        property bool opened: true
+        property bool opened: false
         opacity: opened ? 1 : 0
         visible: opacity != 0
+
         Behavior on opacity {
-            NumberAnimation {
-                duration: Globals.animationTime
-                easing.type: Easing.OutCubic
-            }
+            NumberAnimation { duration: Globals.animationTime; easing.type: Easing.OutCubic }
         }
+
+        onOpenedChanged: {
+            if (opened)
+                Qt.callLater(() => wallpaperPicker.focusGrid());
+        }
+
         IconButton {
+            id: wallpaperBack
+            anchors.top: parent.top
+            anchors.left: parent.left
             icon: "go-previous"
-            onClicked: function () {
+            onClicked: {
                 viewWallpaperPick.opened = false;
                 viewDefault.opened = true;
             }
         }
-        WallpaperPicker {}
+
+        WallpaperPicker {
+            id: wallpaperPicker
+            anchors {
+                top: wallpaperBack.bottom
+                bottom: parent.bottom
+                left: parent.left
+                right: parent.right
+                margins: 8
+            }
+            onBackRequested: {
+                viewWallpaperPick.opened = false;
+                viewDefault.opened = true;
+            }
+            onWallpaperSelected: {
+                viewWallpaperPick.opened = false;
+                viewDefault.opened = true;
+            }
+        }
     }
 }
