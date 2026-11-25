@@ -43,25 +43,26 @@ PanelWindow {
             const tokens = query.split(/\s+/).filter(token => token.length > 0);
 
             function haystack(app) {
-                return [app.name, app.genericName, app.comment,
-                    ...(app.keywords || []), ...(app.categories || [])]
-                    .join(" ").toLowerCase();
+                return [app.name, app.genericName, app.comment, ...(app.keywords || []), ...(app.categories || [])].join(" ").toLowerCase();
             }
 
             function score(app) {
                 const name = app.name.toLowerCase();
-                if (name === query) return 0;
-                if (name.startsWith(query)) return 1;
-                if (name.includes(query)) return 2;
+                if (name === query)
+                    return 0;
+                if (name.startsWith(query))
+                    return 1;
+                if (name.includes(query))
+                    return 2;
                 const generic = (app.genericName || "").toLowerCase();
-                if (generic.startsWith(query)) return 3;
-                if (generic.includes(query)) return 4;
+                if (generic.startsWith(query))
+                    return 3;
+                if (generic.includes(query))
+                    return 4;
                 return 5;
             }
 
-            return applications
-                .filter(app => tokens.every(token => haystack(app).includes(token)))
-                .sort((a, b) => score(a) - score(b) || a.name.localeCompare(b.name));
+            return applications.filter(app => tokens.every(token => haystack(app).includes(token))).sort((a, b) => score(a) - score(b) || a.name.localeCompare(b.name));
         }
     }
 
@@ -81,8 +82,10 @@ PanelWindow {
     }
 
     function toggleLauncher() {
-        if (opened) closeLauncher();
-        else openLauncher();
+        if (opened)
+            closeLauncher();
+        else
+            openLauncher();
     }
 
     function launchApplication(app) {
@@ -100,7 +103,8 @@ PanelWindow {
 
     function moveSelection(delta) {
         const count = filteredApplications.values.length;
-        if (!count) return;
+        if (!count)
+            return;
         const current = appGrid.currentIndex < 0 ? 0 : appGrid.currentIndex;
         const next = Math.max(0, Math.min(count - 1, current + delta));
         appGrid.currentIndex = next;
@@ -171,14 +175,15 @@ PanelWindow {
                         }
                     }
 
-                    Item { Layout.fillWidth: true }
+                    Item {
+                        Layout.fillWidth: true
+                    }
 
                     Rectangle {
                         Layout.preferredWidth: 42
                         Layout.preferredHeight: 42
                         radius: 14
-                        color: closeMouse.containsMouse
-                            ? Matugen.surface_container_high : "transparent"
+                        color: closeMouse.containsMouse ? Matugen.surface_container_high : "transparent"
 
                         Text {
                             anchors.centerIn: parent
@@ -253,7 +258,9 @@ PanelWindow {
                         font.pixelSize: 15
                         font.weight: Font.DemiBold
                     }
-                    Item { Layout.fillWidth: true }
+                    Item {
+                        Layout.fillWidth: true
+                    }
                     Text {
                         text: filteredApplications.values.length + " results"
                         color: Matugen.on_surface_variant
@@ -280,8 +287,10 @@ PanelWindow {
                         }
 
                         onCountChanged: {
-                            if (count === 0) currentIndex = -1;
-                            else if (currentIndex < 0 || currentIndex >= count) currentIndex = 0;
+                            if (count === 0)
+                                currentIndex = -1;
+                            else if (currentIndex < 0 || currentIndex >= count)
+                                currentIndex = 0;
                         }
 
                         delegate: Item {
@@ -294,16 +303,14 @@ PanelWindow {
                                 anchors.fill: parent
                                 anchors.margins: 6
                                 radius: 17
-                                color: appGrid.currentIndex === index
-                                    ? Matugen.primary_container
-                                    : appMouse.containsMouse
-                                        ? Matugen.surface_container_high
-                                        : Matugen.surface_container
+                                color: appGrid.currentIndex === index ? Matugen.primary_container : appMouse.containsMouse ? Matugen.surface_container_high : Matugen.surface_container
                                 border.width: appGrid.currentIndex === index ? 1 : 0
                                 border.color: Matugen.primary
 
                                 Behavior on color {
-                                    ColorAnimation { duration: Globals.animationTime }
+                                    ColorAnimation {
+                                        duration: Globals.animationTime
+                                    }
                                 }
 
                                 Column {
@@ -325,8 +332,7 @@ PanelWindow {
                                         width: parent.width
                                         height: 34
                                         text: modelData.name
-                                        color: appGrid.currentIndex === index
-                                            ? Matugen.on_primary_container : Matugen.on_surface
+                                        color: appGrid.currentIndex === index ? Matugen.on_primary_container : Matugen.on_surface
                                         font.pixelSize: 13
                                         font.weight: Font.DemiBold
                                         horizontalAlignment: Text.AlignHCenter
@@ -339,8 +345,7 @@ PanelWindow {
                                     Text {
                                         width: parent.width
                                         text: modelData.genericName || modelData.comment
-                                        color: appGrid.currentIndex === index
-                                            ? Matugen.on_primary_container : Matugen.on_surface_variant
+                                        color: appGrid.currentIndex === index ? Matugen.on_primary_container : Matugen.on_surface_variant
                                         font.pixelSize: 10
                                         horizontalAlignment: Text.AlignHCenter
                                         elide: Text.ElideRight
@@ -405,7 +410,9 @@ PanelWindow {
                         color: Matugen.on_surface_variant
                         font.pixelSize: 12
                     }
-                    Item { Layout.fillWidth: true }
+                    Item {
+                        Layout.fillWidth: true
+                    }
                     Text {
                         text: "Quickshell"
                         color: Matugen.outline
@@ -418,8 +425,14 @@ PanelWindow {
 
     IpcHandler {
         target: "applauncher"
-        function toggle(): void { root.toggleLauncher(); }
-        function close(): void { root.closeLauncher(); }
-        function open(): void { root.openLauncher(); }
+        function toggle(): void {
+            root.toggleLauncher();
+        }
+        function close(): void {
+            root.closeLauncher();
+        }
+        function open(): void {
+            root.openLauncher();
+        }
     }
 }

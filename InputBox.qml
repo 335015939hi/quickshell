@@ -31,13 +31,12 @@ Row {
     property alias selectByMouse: editor.selectByMouse
 
     signal edited(string value)
-    signal accepted()
+    signal accepted
     signal keyPressed(var event)
 
-    implicitWidth: (labelText.visible ? labelText.implicitWidth + spacing : 0) + 240
-    implicitHeight: inputHeight
+    height: inputHeight
 
-    width: parent ? parent.width : implicitWidth
+    width: parent ? parent.width : ((labelText.visible ? labelText.implicitWidth + spacing : 0) + 240)
     spacing: 8
 
     Text {
@@ -54,17 +53,12 @@ Row {
     Rectangle {
         id: field
 
-        width: Math.max(
-            0,
-            root.width - (labelText.visible ? labelText.implicitWidth + root.spacing : 0)
-        )
+        width: Math.max(0, root.width - (labelText.visible ? labelText.implicitWidth + root.spacing : 0))
         height: root.inputHeight
         radius: root.cornerRadius
         color: root.backgroundColor
         border.width: 1
-        border.color: editor.activeFocus
-            ? root.focusedBorderColor
-            : root.borderColor
+        border.color: editor.activeFocus ? root.focusedBorderColor : root.borderColor
 
         anchors.verticalCenter: parent.verticalCenter
         clip: true
@@ -93,8 +87,7 @@ Row {
 
         Text {
             anchors.left: parent.left
-            anchors.leftMargin: root.horizontalPadding
-                + (root.icon.length > 0 ? root.iconSize + 10 : 0)
+            anchors.leftMargin: root.horizontalPadding + (root.icon.length > 0 ? root.iconSize + 10 : 0)
             anchors.right: parent.right
             anchors.rightMargin: root.horizontalPadding
             anchors.verticalCenter: parent.verticalCenter
@@ -110,8 +103,7 @@ Row {
             id: editor
 
             anchors.fill: parent
-            anchors.leftMargin: root.horizontalPadding
-                + (root.icon.length > 0 ? root.iconSize + 10 : 0)
+            anchors.leftMargin: root.horizontalPadding + (root.icon.length > 0 ? root.iconSize + 10 : 0)
             anchors.rightMargin: root.horizontalPadding
 
             verticalAlignment: TextInput.AlignVCenter
