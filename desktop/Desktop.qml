@@ -27,13 +27,32 @@ PanelWindow {
         }
 
         DesktopLayout {}
+        Wallpaper {}
+    }
+
+    Process {
+        id: command
     }
 
     IpcHandler {
+        id: ipc
         target: "desktop"
 
         function toggle(): void {
-            root.opened = !root.opened;
+            if (root.opened) {
+                ipc.close();
+            } else {
+                ipc.open();
+            }
+        }
+
+        function close(): void {
+            command.exec(["qs", "ipc", "call", "applauncher", "close"]);
+            root.opened = false;
+        }
+
+        function open(): void {
+            root.opened = true;
         }
     }
 }

@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell.Services.Notifications
 import qs.widgets
 import qs.desktop
+import qs.applauncher
 
 ShellRoot {
     NotificationService {
@@ -34,6 +35,7 @@ ShellRoot {
     }
     RightBar {}
     Desktop {}
+    AppLauncher {}
     NotificationPopups {
         notificationModel: notifications.trackedNotifications
         background: Matugen.primary_a
