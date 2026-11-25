@@ -202,7 +202,7 @@ Singleton {
     FileView {
         id: colorFile
 
-        path: Quickshell.env("HOME") + "/.config/matugen/quickshell-colors.json"
+        path: Quickshell.env("HOME") + "/.config/quickshell/matugen.json"
 
         watchChanges: true
         onFileChanged: reload()
