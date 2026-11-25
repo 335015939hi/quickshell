@@ -232,15 +232,4 @@ Item {
             }
         }
     }
-
-    Text {
-        anchors.centerIn: grid
-        width: grid.width - 24
-        visible: root.wallpapers.length === 0
-        text: scanner.running ? "Scanning for wallpapers…" : root.scanError !== "" ? root.scanError : "No supported image files found in\n" + root.wallpaperDirectory
-        color: Matugen.on_surface_variant
-        font.pixelSize: 12
-        horizontalAlignment: Text.AlignHCenter
-        wrapMode: Text.Wrap
-    }
 }
