@@ -1,0 +1,7 @@
+{
+<* for name, value in colors *>
+  "{{ name }}": "{{ value.default.hex }}",
+  "{{ name }}_a": "#{{custom.alpha_hex}}{{ value.default.hex_stripped }}",
+<* endfor *>
+  "dummy_no_trail_comma":""
+}

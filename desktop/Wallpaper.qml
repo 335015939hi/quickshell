@@ -23,7 +23,7 @@ Scope {
     // The values are passed as positional arguments, not interpolated into
     // shell source, so spaces and shell metacharacters in paths are safe.
     // Example: `notify-send "Wallpaper" "$WALLPAPER on $MONITOR ($TRANSITION)"`
-    property string changeCommand: "#matugen image \"$WALLPAPER\""
+    property string changeCommand: "matugen image \"$WALLPAPER\""
 
     // Restored wallpapers also trigger the command at startup.
     property bool runCommandOnStartup: true
