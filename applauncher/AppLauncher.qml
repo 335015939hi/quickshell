@@ -20,7 +20,8 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     focusable: true
     color: "transparent"
-    visible: opened || launcher.opacity > 0
+    // Keep the layer-shell window alive while the launcher slides off-screen.
+    visible: opened || launcher.y < launcher.height
 
     DesktopEntryLauncher {
         id: desktopEntryLauncher
@@ -40,7 +41,7 @@ PanelWindow {
             if (!query)
                 return applications.sort((a, b) => a.name.localeCompare(b.name));
 
-            const tokens = query.split(/\s+/).filter(token => token.length > 0);
+            const tokens = query.split(/\\s+/).filter(token => token.length > 0);
 
             function haystack(app) {
                 return [app.name, app.genericName, app.comment, ...(app.keywords || []), ...(app.categories || [])].join(" ").toLowerCase();
@@ -122,13 +123,15 @@ PanelWindow {
 
     Item {
         id: launcher
-        anchors.fill: parent
-        opacity: root.opened ? 1 : 0
+        width: parent.width
+        height: parent.height
+        x: 0
+        y: root.opened ? 0 : height
 
-        Behavior on opacity {
+        Behavior on y {
             NumberAnimation {
                 duration: Globals.animationTime
-                easing.type: Easing.OutCubic
+                easing.type: root.opened ? Easing.OutCubic : Easing.InCubic
             }
         }
 
@@ -266,7 +269,7 @@ PanelWindow {
                     id: appGrid
                     anchors.fill: parent
                     clip: true
-                    visible: root.opened || launcher.opacity > 0
+                    visible: root.opened || launcher.y < launcher.height
                     cellWidth: 180
                     cellHeight: 142
                     model: filteredApplications
