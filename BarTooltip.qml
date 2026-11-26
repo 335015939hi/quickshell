@@ -19,6 +19,13 @@ Item {
 
     // Internal state
     property bool _shown: false
+    property int _windowRevision: 0
+    Connections {
+        target: root.anchorItem ? root.anchorItem.QsWindow.window : null
+        function onWindowConnected() {
+            root._windowRevision++;
+        }
+    }
 
     // Tooltip window
     PopupWindow {
@@ -34,21 +41,28 @@ Item {
 
         anchor.rect.x: root.anchorItem ? (root.anchorItem.width - tip.implicitWidth) / 2 : 0
         anchor.rect.y: {
-            if (!root.anchorItem) {
+            // Re-evaluate after the parent window connects.
+            root._windowRevision;
+
+            const anchor = root.anchorItem;
+            if (!anchor)
                 return 0;
-            }
-            var y = root.anchorItem.mapToGlobal(0, 0).y + (root.anchorItem.height / 2);
-            // QsWindow.window may be null on init. check for null to prevent warnings
-            var screen = root.anchorItem.QsWindow.window;
-            if (screen == null) {
+
+            const window = anchor.QsWindow.window;
+            if (!window)
                 return 0;
-            }
-            screen = screen.screen;
-            if (y > screen.y + screen.height / 2) {
-                return -tip.implicitHeight - root.tooltipOffset;
-            } else {
-                return anchorItem.height + root.tooltipOffset;
-            }
+
+            const screen = window.screen;
+            if (!screen)
+                return 0;
+
+            // Intentionally read this to make the binding reactive
+            // to window geometry and transform changes.
+            const transform = window.windowTransform;
+
+            const y = anchor.mapToGlobal(0, 0).y + anchor.height / 2;
+
+            return y > screen.y + screen.height / 2 ? -tip.implicitHeight - root.tooltipOffset : anchor.height + root.tooltipOffset;
         }
 
         implicitWidth: Math.max(40, tipText.implicitWidth + 16)
