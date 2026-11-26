@@ -24,11 +24,8 @@ PanelWindow {
 
     DesktopEntryLauncher {
         id: desktopEntryLauncher
-        onLaunchSucceeded: root.closeLauncher()
         onLaunchFailed: (applicationName, reason) => {
-            root.launchError = applicationName.length > 0
-                ? applicationName + ": " + reason
-                : reason;
+            root.launchError = applicationName.length > 0 ? applicationName + ": " + reason : reason;
             console.warn("App launcher:", root.launchError);
         }
     }
@@ -93,6 +90,7 @@ PanelWindow {
 
     function launchApplication(app) {
         desktopEntryLauncher.launch(app);
+        root.closeLauncher();
     }
 
     function launchSelected() {
@@ -377,7 +375,6 @@ PanelWindow {
                         font.pixelSize: 13
                     }
                 }
-
             }
 
             Text {
