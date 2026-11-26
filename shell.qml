@@ -3,7 +3,6 @@ import Quickshell.Wayland
 import QtQuick
 import Quickshell.Services.Notifications
 import qs.widgets
-import qs.desktop
 import qs.applauncher
 
 ShellRoot {
@@ -34,7 +33,7 @@ ShellRoot {
         }
     }
     RightBar {}
-    Desktop {}
+    Wallpaper {}
     AppLauncher {}
     NotificationPopups {
         notificationModel: notifications.trackedNotifications
