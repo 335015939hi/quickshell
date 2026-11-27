@@ -12,7 +12,7 @@ Slide {
     onHide: function () {
         sessionConfirm.opened = false;
         viewDefault.opened = true;
-        viewNetwork.visible = false;
+        viewNetwork.opened = false;
         viewWallpaperPick.opened = false;
     }
 
@@ -39,7 +39,7 @@ Slide {
                 Network {
                     onClicked: {
                         viewDefault.opened = false;
-                        viewNetwork.visible = true;
+                        viewNetwork.opened = 1;
                     }
                 }
                 Battery {}
@@ -176,24 +176,36 @@ Slide {
     Column {
         id: viewNetwork
         anchors.fill: parent
-        visible: false
+        visible: opacity != 0
+        opacity: opened ? 1 : 0
+        property bool opened: false
         IconButton {
+            id: viewNetworkBackButton
             icon: "go-previous"
             onClicked: function () {
-                viewNetwork.visible = false;
+                viewNetwork.opened = false;
                 viewDefault.opened = true;
             }
         }
         Loader {
             id: networkWidgetLoader
             width: parent.width
+            height: parent.height - viewNetworkBackButton.height
             active: viewNetwork.visible
 
             sourceComponent: Component {
                 NetworkControl {
-                    width: networkWidgetLoader.width
-                    anchors.margins: 15
+                    width: parent.width
+                    height: parent.height
+                    anchors.leftMargin: 8
+                    anchors.rightMargin: 8
                 }
+            }
+        }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Globals.animationTime
+                easing.type: Easing.InOutCubic
             }
         }
     }
