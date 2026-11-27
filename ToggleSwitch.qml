@@ -5,7 +5,7 @@ import qs
 
 MouseArea {
     id: root
-    property bool disabled: true
+    property bool disabled: false
     property bool checked: false
     property color checkedColor: Matugen.primary_container
     property color uncheckedColor: Matugen.outline_variant
