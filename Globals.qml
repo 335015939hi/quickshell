@@ -33,19 +33,21 @@ Singleton {
 
         if (wifi) {
             const network = wifi.networks.values.find(n => n.connected);
-            const strength = network ? network.signalStrength : 1;
-
-            if (strength >= 0.75)
-                return "network-wireless-connected-100-symbolic";
-            if (strength >= 0.50)
-                return "network-wireless-connected-75-symbolic";
-            if (strength >= 0.25)
-                return "network-wireless-connected-50-symbolic";
-
-            return "network-wireless-connected-25-symbolic";
+            return getWifiSignalIcon(network ? network.signalStrength : 1);
         }
 
         return "network-wireless-disconnected-symbolic";
+    }
+    function getWifiSignalIcon(strength) {
+        if (strength >= 0.80)
+            return "network-wireless-connected-100-symbolic";
+        if (strength >= 0.60)
+            return "network-wireless-connected-75-symbolic";
+        if (strength >= 0.40)
+            return "network-wireless-connected-50-symbolic";
+        if (strength >= 0.20)
+            return "network-wireless-connected-25-symbolic";
+        return "network-wireless-connected-00-symbolic";
     }
 
     readonly property string networkName: {
@@ -62,8 +64,8 @@ Singleton {
 
     readonly property var activeNetworkDevice: Networking.devices.values.find(d => d.connected) ?? null
 
-    property string ipv4: "—"
-    property string ipv6: "—"
+    property var ipv4: null
+    property var ipv6: null
     property bool ipRefreshPending: false
 
     function ipRefreshAddress() {
@@ -73,8 +75,8 @@ Singleton {
             return;
         }
         if (!activeNetworkDevice) {
-            ipv4 = "—";
-            ipv6 = "—";
+            ipv4 = null;
+            ipv6 = null;
             return;
         }
         ipRefreshPending = false;
@@ -95,8 +97,8 @@ Singleton {
             onStreamFinished: {
                 const ipv4Match = text.match(/\binet\s+([^/\s]+)/);
                 const ipv6Match = text.match(/\binet6\s+([^/\s]+)/);
-                root.ipv4 = ipv4Match ? ipv4Match[1] : "—";
-                root.ipv6 = ipv6Match ? ipv6Match[1] : "—";
+                root.ipv4 = ipv4Match ? ipv4Match[1] : null;
+                root.ipv6 = ipv6Match ? ipv6Match[1] : null;
             }
         }
         onExited: {

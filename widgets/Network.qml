@@ -17,8 +17,12 @@ IconButton {
         if (device) {
             result += "Interface: " + device.name + "\n";
         }
-        result += Globals.ipv4 + "\n";
-        result += Globals.ipv6 + "\n";
+        if (Globals.ipv4) {
+            result += "IPv4: " + Globals.ipv4 + "\n";
+        }
+        if (Globals.ipv6) {
+            result += "IPv6:" + Globals.ipv6 + "\n";
+        }
         return result.trim();
     }
 }

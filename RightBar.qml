@@ -16,6 +16,7 @@ Slide {
         viewWallpaperPick.opened = false;
     }
 
+    //default view
     Item {
         id: viewDefault
         property bool opened: true
@@ -52,6 +53,7 @@ Slide {
                 }
             }
         }
+        //confirm logout/reboot/shutdown
         Column {
             anchors.bottom: parent.bottom
             anchors.horizontalCenter: parent.horizontalCenter
@@ -123,6 +125,7 @@ Slide {
                     }
                 }
             }
+            //session actions
             Row {
                 IconButton {
                     icon: "system-shutdown-symbolic"
@@ -187,14 +190,9 @@ Slide {
             active: viewNetwork.visible
 
             sourceComponent: Component {
-                NetworkWidget {
+                NetworkControl {
                     width: networkWidgetLoader.width
                     anchors.margins: 15
-                    cardColor: Matugen.surface_a
-                    innerColor: Matugen.surface_container_a
-                    textColor: Matugen.on_surface
-                    mutedTextColor: Matugen.on_surface_variant
-                    accentColor: Matugen.primary
                 }
             }
         }
