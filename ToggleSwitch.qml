@@ -7,13 +7,14 @@ MouseArea {
     id: root
     property bool disabled: false
     property bool checked: false
-    property color checkedColor: Matugen.primary_container
-    property color uncheckedColor: Matugen.outline_variant
-    property color checkedDisabledColor: Matugen.primary_container_a
-    property color uncheckedDisabledColor: Matugen.outline_variant_a
-    property color borderColor: Matugen.primary
-    property color toggleColor: Matugen.primary
-    property color toggleDisabledColor: Matugen.primary_a
+    property var onCheck: function () {}
+    property color checkedColor: Matugen.primary
+    property color uncheckedColor: Matugen.surface_bright
+    property color checkedDisabledColor: Matugen.primary_a
+    property color uncheckedDisabledColor: Matugen.surface_bright_a
+    property color toggleColor: Matugen.on_surface
+    property color borderColor: toggleColor
+    property color toggleDisabledColor: Matugen.on_surface_a
 
     property int borderWidth: 2
 
@@ -69,9 +70,13 @@ MouseArea {
         }
     }
 
-    onClicked: {
+    function toggle() {
         if (!disabled) {
-            checked = !checked;
+            root.onCheck();
         }
+    }
+
+    onClicked: {
+        toggle();
     }
 }

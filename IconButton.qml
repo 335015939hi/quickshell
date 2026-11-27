@@ -14,8 +14,6 @@ HoverArea {
     property int buttonMargins: 16
     property int cornerRadius: 8
 
-    property color hoverColor: "#404040"
-
     implicitWidth: iconSize + iconText.implicitWidth + buttonMargins
     implicitHeight: Math.max(iconText.implicitHeight, iconSize) + buttonMargins
 
