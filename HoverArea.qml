@@ -3,7 +3,7 @@ import QtQuick
 MouseArea {
     id: root
     property color hoverColor: Matugen.primary_container_a
-    property int cornerRadius: implicitWidth / 4
+    property int cornerRadius: Math.min(implicitWidth, implicitHeight) / 4
     property string tooltip: ""
 
     implicitWidth: content.implicitWidth
