@@ -271,4 +271,12 @@ Slide {
             }
         }
     }
+
+    //border
+    Rectangle {
+        anchors.left: parent.left
+        width: 1
+        color: Matugen.primary
+        height: parent.height
+    }
 }
