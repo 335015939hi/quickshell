@@ -1,5 +1,7 @@
 import QtQuick
 import Quickshell
+import QtQuick.Layouts
+import QtQuick.Controls
 import qs.widgets
 
 Slide {
@@ -8,275 +10,73 @@ Slide {
     edge: "right"
     slideWidth: 500
     focusable: true
+    suspendAutoHide: false
 
-    onHide: function () {
-        sessionConfirm.opened = false;
-        viewDefault.opened = true;
-        viewNetwork.opened = false;
-        viewWallpaperPick.opened = false;
-    }
+    onHide: function () {}
 
-    //default view
-    Item {
-        id: viewDefault
-        property bool opened: true
-        opacity: opened ? 1 : 0
-        visible: opacity != 0
-        Behavior on opacity {
-            NumberAnimation {
-                duration: Globals.animationTime
-                easing.type: Easing.OutCubic
-            }
-        }
+    Loader {
         anchors.fill: parent
-        Column {
-            anchors.horizontalCenter: parent.horizontalCenter
-            Clock {
-                color: Matugen.on_surface
-                format: "yyyy/mm/dd hh:mm:ss"
-            }
-            Row {
-                Network {
-                    onClicked: {
-                        viewDefault.opened = false;
-                        viewNetwork.opened = 1;
-                    }
-                }
-                Battery {}
-                IconButton {
-                    icon: "viewimage-symbolic"
-                    tooltip: "Set wallpaper"
-                    onClicked: {
-                        viewDefault.opened = false;
-                        viewWallpaperPick.opened = true;
-                    }
-                }
-            }
-        }
-        //confirm logout/reboot/shutdown
-        Column {
-            anchors.bottom: parent.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
-            Row {
-                id: sessionConfirm
-                visible: opacity != 0
-                opacity: opened ? 1 : 0
-                property bool opened: false
-                property string command: ""
-                property string _nextText: ""
-                property var setText: function (text) {
-                    if (text == sessionConfirmText.text) {
-                        return;
-                    }
-                    if (opened) {
-                        _nextText = text;
-                        textAnimation.restart();
-                    } else {
-                        sessionConfirmText.text = text;
-                    }
-                }
-                SequentialAnimation {
-                    id: textAnimation
 
-                    NumberAnimation {
-                        target: sessionConfirm
-                        property: "opacity"
-                        to: 0
-                        duration: Globals.animationTime
-                        easing.type: Easing.OutCubic
-                    }
+        active: root.expanded || root.preparing
 
-                    ScriptAction {
-                        script: sessionConfirmText.text = sessionConfirm._nextText
+        sourceComponent: Component {
+            Item {
+                anchors.fill: parent
+                RowLayout {
+                    anchors.fill: parent
+                    //border
+                    Rectangle {
+                        Layout.fillHeight: true
+                        width: 1
+                        color: Matugen.primary
                     }
-
-                    NumberAnimation {
-                        target: sessionConfirm
-                        property: "opacity"
-                        to: 1
-                        duration: Globals.animationTime / 2
-                        easing.type: Easing.OutCubic
-                    }
-                }
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: Globals.animationTime / 2
-                        easing.type: Easing.OutCubic
-                    }
-                }
-                Text {
-                    id: sessionConfirmText
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: Matugen.on_background
-                }
-                IconButton {
-                    command: sessionConfirm.command
-                    tooltip: "Confirm"
-                    icon: "dialog-ok"
-                    onClicked: {
-                        sessionConfirm.opened = false;
-                    }
-                }
-                IconButton {
-                    icon: "dialog-cancel"
-                    tooltip: "Cancel"
-                    onClicked: {
-                        sessionConfirm.opened = false;
+                    //back button
+                    ColumnLayout {
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        IconButton {
+                            icon: "go-previous"
+                            onClicked: {
+                                if (stack.depth <= 1) {
+                                    root.expanded = false;
+                                } else {
+                                    stack.pop();
+                                }
+                            }
+                        }
+                        //view
+                        StackView {
+                            id: stack
+                            Layout.fillHeight: true
+                            Layout.fillWidth: true
+                            initialItem: defaultPage
+                            onBusyChanged: {
+                                root.suspendAutoHide = stack.busy;
+                            }
+                        }
                     }
                 }
-            }
-            //session actions
-            Row {
-                IconButton {
-                    icon: "system-shutdown-symbolic"
-                    iconSize: 40
-                    tooltip: "Shutdown"
-                    onClicked: {
-                        sessionConfirm.setText("Shutdown?");
-                        sessionConfirm.opened = true;
-                        sessionConfirm.command = "systemctl poweroff";
-                    }
-                }
-                IconButton {
-                    icon: "system-reboot-symbolic"
-                    iconSize: 40
-                    tooltip: "Reboot"
-                    onClicked: {
-                        sessionConfirm.setText("Reboot?");
-                        sessionConfirm.opened = true;
-                        sessionConfirm.command = "systemctl reboot";
-                    }
-                }
-                IconButton {
-                    icon: "system-log-out-symbolic"
-                    iconSize: 40
-                    tooltip: "Logout"
-                    onClicked: {
-                        sessionConfirm.setText("Logout?");
-                        sessionConfirm.opened = true;
-                        sessionConfirm.command = "hyprshutdown";
-                    }
-                }
-                IconButton {
-                    icon: "system-suspend-symbolic"
-                    iconSize: 40
-                    command: "hyprlock & disown;sleep 0.5;systemctl suspend"
-                    tooltip: "Sleep"
-                }
-                IconButton {
-                    icon: "system-lock-screen-symbolic"
-                    iconSize: 40
-                    command: "hyprlock & disown"
-                    tooltip: "Lock screen"
-                }
-            }
-        }
-    }
 
-    Column {
-        id: viewNetwork
-        anchors.fill: parent
-        visible: opacity != 0
-        opacity: opened ? 1 : 0
-        property bool opened: false
-        IconButton {
-            id: viewNetworkBackButton
-            icon: "go-previous"
-            onClicked: function () {
-                viewNetwork.opened = false;
-                viewDefault.opened = true;
-            }
-        }
-        Loader {
-            id: networkWidgetLoader
-            width: parent.width
-            height: parent.height - viewNetworkBackButton.height
-            active: viewNetwork.visible
-
-            sourceComponent: Component {
-                NetworkControl {
-                    width: parent.width
-                    height: parent.height
-                    anchors.leftMargin: 8
-                    anchors.rightMargin: 8
-                }
-            }
-        }
-        Behavior on opacity {
-            NumberAnimation {
-                duration: Globals.animationTime
-                easing.type: Easing.InOutCubic
-            }
-        }
-    }
-    Item {
-        id: viewWallpaperPick
-        anchors.fill: parent
-        property bool opened: false
-        opacity: opened ? 1 : 0
-        visible: opacity != 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: Globals.animationTime
-                easing.type: Easing.OutCubic
-            }
-        }
-
-        onOpenedChanged: {
-            if (opened)
-                Qt.callLater(() => {
-                    const picker = wallpaperPickerLoader.item;
-                    if (picker)
-                        picker.focusGrid();
-                });
-        }
-
-        IconButton {
-            id: wallpaperBack
-            anchors.top: parent.top
-            anchors.left: parent.left
-            icon: "go-previous"
-            onClicked: {
-                viewWallpaperPick.opened = false;
-                viewDefault.opened = true;
-            }
-        }
-
-        Loader {
-            id: wallpaperPickerLoader
-
-            anchors {
-                top: wallpaperBack.bottom
-                bottom: parent.bottom
-                left: parent.left
-                right: parent.right
-                margins: 8
-            }
-
-            active: viewWallpaperPick.visible
-
-            sourceComponent: Component {
-                WallpaperPicker {
-                    onBackRequested: {
-                        viewWallpaperPick.opened = false;
-                        viewDefault.opened = true;
-                    }
-
-                    onWallpaperSelected: {
-                        viewWallpaperPick.opened = false;
-                        viewDefault.opened = true;
+                Component {
+                    id: defaultPage
+                    ColumnLayout {
+                        Clock {
+                            Layout.alignment: Qt.AlignHCenter
+                            format: "dddd, MMMM d, yyyy\nhh:mm:ss"
+                            textSize: 24
+                            color: Matugen.on_surface
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+                        Grid {
+                            Layout.fillHeight: true
+                            Battery {}
+                            NetworkControl {
+                                pageStack: stack
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-
-    //border
-    Rectangle {
-        anchors.left: parent.left
-        width: 1
-        color: Matugen.primary
-        height: parent.height
     }
 }

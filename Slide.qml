@@ -17,9 +17,10 @@ PanelWindow {
     property int peekWidth: 1
 
     // Timing
-    property int showDelay: 200
-    property int hideDelay: 100
+    property int showDelay: Globals.animationTime
+    property int hideDelay: Globals.animationTime
     property bool expanded: false
+    property bool suspendAutoHide: false
 
     property color background: "#ffffff"
 
@@ -33,6 +34,9 @@ PanelWindow {
 
     readonly property bool vertical: edge === "left" || edge === "right"
     readonly property int thickness: vertical ? slideWidth : slideHeight
+
+    property bool focused: false
+    property bool preparing: showTimer.running
     // Appearance
     WlrLayershell.namespace: "qs-bar"
 
@@ -145,16 +149,27 @@ PanelWindow {
     HoverHandler {
         onHoveredChanged: {
             if (hovered) {
+                root.focused = true;
                 hideTimer.stop();
 
                 if (!root.expanded)
                     showTimer.start();
             } else {
+                root.focused = false;
                 showTimer.stop();
-
-                if (root.expanded)
-                    hideTimer.restart();
+                if (!root.suspendAutoHide) {
+                    if (root.expanded)
+                        hideTimer.restart();
+                }
             }
+        }
+    }
+
+    onSuspendAutoHideChanged: {
+        if (suspendAutoHide) {
+            hideTimer.stop();
+        } else if (root.expanded && !root.focused) {
+            hideTimer.restart();
         }
     }
 
@@ -171,7 +186,8 @@ PanelWindow {
         id: hideTimer
         interval: root.hideDelay
         onTriggered: {
-            root.expanded = false;
+            if (!root.suspendAutoHide && !root.focused)
+                root.expanded = false;
         }
     }
 }

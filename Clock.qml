@@ -7,7 +7,10 @@ HoverArea {
     property string format: "hh:mm:ss"
     property string tooltipFormat: "dddd, MMMM d, yyyy\nhh:mm:ss"
     property int textSize: 16
-    property color color
+    property alias color: text.color
+    property alias horizontalAlignment: text.horizontalAlignment
+    property alias verticalAlignment: text.verticalAlignment
+
     implicitWidth: text.implicitWidth
     implicitHeight: text.implicitHeight
     Text {
@@ -15,7 +18,6 @@ HoverArea {
         font {
             pixelSize: root.textSize
         }
-        color: root.color
         text: Qt.formatDateTime(Globals.currentTime, root.format)
     }
     tooltip: Qt.formatDateTime(Globals.currentTime, root.tooltipFormat)
