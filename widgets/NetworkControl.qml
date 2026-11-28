@@ -393,7 +393,7 @@ IconButton {
                             nmcliGetConnectionDetails.index++;
                             nmcliGetConnectionDetails.running = true;
                         } else {
-                            controlsRoot.nmcliConnectionsList = root.nmcliConnectionsListTemp;
+                            controlsRoot.nmcliConnectionsList = controlsRoot.nmcliConnectionsListTemp;
                         }
                     }
                 }
