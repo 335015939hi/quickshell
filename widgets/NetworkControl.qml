@@ -17,44 +17,63 @@ ScrollView {
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-    readonly property bool hasWifiDevice: Networking.devices.values.some(device => device.type === DeviceType.Wifi)
+    readonly property bool hasWifiDevice: Networking.devices.values.some(
+        device => device.type === DeviceType.Wifi
+    )
 
-    function setWifiScanning(enabled) {
-        const shouldScan = enabled && Networking.wifiEnabled && root.visible;
-        for (const device of Networking.devices.values) {
-            if (device.type === DeviceType.Wifi)
-                device.scannerEnabled = shouldScan;
-        }
+    property bool wifiScanPending: false
+    property string wifiScanInterface: ""
+    property string wifiScanDbusPath: ""
+    property double wifiScanLastScanBefore: -1
+
+    function finishWifiScan() {
+        wifiScanPending = false;
+        wifiScanPollTimer.stop();
+        wifiScanTimeout.stop();
     }
 
     function scanWifiDevices() {
-        if (!Networking.wifiEnabled)
+        if (!Networking.wifiEnabled || !root.visible || wifiScanPending)
             return;
 
-        // Restart the scanner so the refresh button requests a fresh scan.
-        for (const device of Networking.devices.values) {
-            if (device.type === DeviceType.Wifi)
-                device.scannerEnabled = false;
-        }
-        wifiScanRestartTimer.restart();
+        const wifiDevice = Networking.devices.values.find(
+            device => device.type === DeviceType.Wifi
+        );
+        if (!wifiDevice)
+            return;
+
+        wifiScanPending = true;
+        wifiScanInterface = wifiDevice.name;
+        wifiScanDbusPath = "";
+        wifiScanLastScanBefore = -1;
+        wifiScanTimeout.restart();
+
+        // Read LastScan before requesting a scan so we can detect its next update.
+        wifiScanGetDevicePath.command = [
+            "nmcli", "-g", "GENERAL.DBUS-PATH", "device", "show",
+            wifiScanInterface
+        ];
+        wifiScanGetDevicePath.running = true;
     }
 
-    onVisibleChanged: setWifiScanning(visible)
-    Component.onCompleted: setWifiScanning(visible)
-    Component.onDestruction: setWifiScanning(false)
-
-    Timer {
-        id: wifiScanRestartTimer
-        interval: 250
-        repeat: false
-        onTriggered: root.setWifiScanning(true)
+    onVisibleChanged: {
+        if (visible)
+            scanWifiDevices();
     }
+    Component.onCompleted: {
+        if (root.visible)
+            scanWifiDevices();
+    }
+    Component.onDestruction: finishWifiScan()
 
     Connections {
         target: Networking
 
         function onWifiEnabledChanged() {
-            root.setWifiScanning(root.visible);
+            if (Networking.wifiEnabled)
+                root.scanWifiDevices();
+            else
+                root.finishWifiScan();
         }
     }
 
@@ -154,7 +173,7 @@ ScrollView {
                     IconButton {
                         icon: "view-refresh"
                         tooltip: "Re-scan WiFi networks"
-                        enabled: wifiToggleSwitch.checked && root.hasWifiDevice
+                        enabled: wifiToggleSwitch.checked && root.hasWifiDevice && !root.wifiScanPending
                         onClicked: root.scanWifiDevices()
                     }
                 }
@@ -366,6 +385,126 @@ ScrollView {
                 } else {
                     root.nmcliConnectionsList = root.nmcliConnectionsListTemp;
                 }
+            }
+        }
+    }
+
+    // Resolve the NetworkManager D-Bus object for the Wi-Fi interface.
+    Process {
+        id: wifiScanGetDevicePath
+        running: false
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (!root.wifiScanPending)
+                    return;
+
+                const path = this.text.trim();
+                if (!path.startsWith("/org/freedesktop/NetworkManager/Devices/")) {
+                    console.warn("Could not resolve NetworkManager D-Bus path for", root.wifiScanInterface);
+                    root.finishWifiScan();
+                    return;
+                }
+
+                root.wifiScanDbusPath = path;
+                wifiScanGetLastScanBefore.command = [
+                    "busctl", "--system", "get-property",
+                    "org.freedesktop.NetworkManager",
+                    root.wifiScanDbusPath,
+                    "org.freedesktop.NetworkManager.Device.Wireless",
+                    "LastScan"
+                ];
+                wifiScanGetLastScanBefore.running = true;
+            }
+        }
+    }
+
+    // Capture the last completed scan timestamp before requesting another scan.
+    Process {
+        id: wifiScanGetLastScanBefore
+        running: false
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (!root.wifiScanPending)
+                    return;
+
+                const fields = this.text.trim().split(/\\s+/);
+                const timestamp = Number(fields[fields.length - 1]);
+                if (!Number.isFinite(timestamp)) {
+                    console.warn("Could not read NetworkManager LastScan timestamp:", this.text);
+                    root.finishWifiScan();
+                    return;
+                }
+
+                root.wifiScanLastScanBefore = timestamp;
+                nmcliRescanWifi.running = true;
+            }
+        }
+    }
+
+    Process {
+        id: nmcliRescanWifi
+        command: ["nmcli", "device", "wifi", "rescan"]
+        running: false
+
+        onExited: function(exitCode, exitStatus) {
+            if (!root.wifiScanPending)
+                return;
+
+            if (exitCode !== 0) {
+                console.warn("nmcli Wi-Fi rescan failed with exit code", exitCode);
+                root.finishWifiScan();
+                return;
+            }
+
+            // nmcli only submits the request. LastScan changes when NetworkManager
+            // has actually completed the wireless scan.
+            wifiScanPollTimer.start();
+        }
+    }
+
+    Process {
+        id: wifiScanPollLastScan
+        running: false
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (!root.wifiScanPending)
+                    return;
+
+                const fields = this.text.trim().split(/\\s+/);
+                const timestamp = Number(fields[fields.length - 1]);
+                if (!Number.isFinite(timestamp)) {
+                    console.warn("Could not read NetworkManager LastScan timestamp:", this.text);
+                    root.finishWifiScan();
+                    return;
+                }
+
+                if (timestamp > root.wifiScanLastScanBefore)
+                    root.finishWifiScan();
+            }
+        }
+    }
+
+    Timer {
+        id: wifiScanPollTimer
+        interval: 500
+        repeat: true
+        onTriggered: {
+            if (root.wifiScanPending && !wifiScanPollLastScan.running)
+                wifiScanPollLastScan.running = true;
+        }
+    }
+
+    Timer {
+        id: wifiScanTimeout
+        interval: 30000
+        repeat: false
+        onTriggered: {
+            if (root.wifiScanPending) {
+                console.warn("Timed out waiting for NetworkManager Wi-Fi scan completion");
+                root.finishWifiScan();
             }
         }
     }
