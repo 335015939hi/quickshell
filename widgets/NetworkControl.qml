@@ -52,6 +52,7 @@ ScrollView {
                 text: "Toggle WiFi"
             }
         }
+
         HoverArea {
             implicitWidth: networkDetails.width
             implicitHeight: networkDetails.height + 2 * controls.spacing
@@ -90,6 +91,44 @@ ScrollView {
                 }
             }
         }
+        Rectangle {
+            width: parent.width
+            implicitHeight: wifiToggleSwitch.checked ? wifiNetworksView.implicitHeight : 0
+            color: "transparent"
+            clip: true
+            ColumnLayout {
+                id: wifiNetworksView
+                width: parent.width
+                spacing: controls.spacing
+                RowLayout {
+                    Text {
+                        text: "WiFi Networks"
+                        Layout.alignment: Qt.AlignVCenter
+                        color: Matugen.on_surface
+                    }
+                    IconButton {
+                        icon: "view-refresh"
+                        tooltip: "Re-scan WiFi networks"
+                    }
+                }
+                Rectangle {
+                    width: parent.width
+                    height: 1
+                    color: Matugen.primary
+                    Layout.alignment: Qt.AlignHCenter
+                }
+                Item {
+                    implicitHeight: controls.spacing
+                }
+            }
+            Behavior on implicitHeight {
+                NumberAnimation {
+                    duration: Globals.animationTime
+                    easing.type: Easing.InOutCubic
+                }
+            }
+        }
+
         Text {
             text: "Connections"
             color: Matugen.on_surface
@@ -105,6 +144,7 @@ ScrollView {
             model: root.nmcliConnectionsList
             width: controls.width
             delegate: HoverArea {
+                hoverColor: Matugen.primary_a
                 required property var modelData
                 implicitWidth: parent.width
                 implicitHeight: nmcliConnectionsViewRow.implicitHeight + 2 * controls.spacing
@@ -112,9 +152,9 @@ ScrollView {
                     id: nmcliConnectionsViewRow
                     anchors.verticalCenter: parent.verticalCenter
                     width: parent.width
+                    spacing: 0
                     Image {
                         id: nmcliConnectionsItemIcon
-                        Layout.alignment: Qt.AlignLeft
                         source: Quickshell.iconPath(modelData.icon)
                         sourceSize: Qt.size(24, 24)
                         width: 24
@@ -122,21 +162,19 @@ ScrollView {
                         fillMode: Image.PreserveAspectFit
                     }
                     Text {
-                        anchors.left: nmcliConnectionsItemIcon.right
-                        Layout.alignment: Qt.AlignLeft
                         text: modelData["connection.id"]
                         color: Matugen.on_surface
                     }
+                    Item {
+                        Layout.fillWidth: true
+                    }
                     IconButton {
-                        Layout.alignment: Qt.AlignRight
                         icon: modelData.activated ? "network-disconnect" : "network-connect"
-                        hoverColor: Matugen.primary_a
                         tooltip: modelData.activated ? "Disconnect" : "Connect"
                     }
                     IconButton {
-                        Layout.alignment: Qt.AlignRight
+                        id: nmcliConnectionsMenuIcon
                         icon: "overflow-menu"
-                        hoverColor: Matugen.primary_a
                         tooltip: "More actions"
                     }
                 }
@@ -215,7 +253,6 @@ ScrollView {
 
                 details.activated = details["GENERAL.STATE"] == "activated";
                 details.icon = root.connectionTypeToIcon(details["connection.type"], details.activated);
-                console.log(root.nmcliConnectionsListTemp[nmcliGetConnectionDetails.index]);
 
                 root.nmcliConnectionsListTemp[nmcliGetConnectionDetails.index] = details;
 
@@ -226,11 +263,6 @@ ScrollView {
                     root.nmcliConnectionsList = root.nmcliConnectionsListTemp;
                     //root.nmcliConnectionsListTemp = null;
                 }
-            }
-        }
-        stderr: StdioCollector {
-            onStreamFinished: {
-                console.log(text);
             }
         }
     }
