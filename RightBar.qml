@@ -73,6 +73,9 @@ Slide {
                             NetworkControl {
                                 pageStack: stack
                             }
+                            WallpaperPicker {
+                                pageStack: stack
+                            }
                         }
                         Item {
                             Layout.fillWidth: true

@@ -1,10 +1,11 @@
 import QtQuick
 import QtQuick.Effects
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import qs
 
-Item {
+IconButton {
     id: root
 
     // Hardcoded for now; change this to the directory containing your images.
@@ -12,13 +13,14 @@ Item {
     property int cardsPerRow: 3
     property int cardHeight: 132
     property int gridSpacing: 8
+    required property StackView pageStack
 
     readonly property int columnCount: Math.max(1, cardsPerRow)
     property var wallpapers: []
     property string scanError: ""
 
-    signal wallpaperSelected(string path)
-    signal backRequested
+    icon: "viewimage-symbolic"
+    tooltip: "Set wallpaper"
 
     function imageUrl(path) {
         return "file://" + path.split("/").map(part => encodeURIComponent(part)).join("/");
@@ -45,7 +47,6 @@ Item {
         const path = wallpapers[index];
         // Wallpaper.qml owns the per-monitor renderer and exposes this IPC API.
         Quickshell.execDetached(["qs", "ipc", "call", "wallpaper", "setAll", path]);
-        wallpaperSelected(path);
     }
 
     function focusGrid() {
@@ -69,166 +70,179 @@ Item {
     }
 
     onWallpapersChanged: {
+        if (!grid)
+            return;
         if (!wallpapers.length)
             grid.currentIndex = -1;
         else if (grid.currentIndex < 0 || grid.currentIndex >= wallpapers.length)
             grid.currentIndex = 0;
     }
 
-    Column {
-        anchors.fill: parent
-        spacing: root.gridSpacing
+    property var grid: null
 
-        Row {
-            id: header
-            width: parent.width
-            height: 28
-            spacing: 8
-            Text {
-                text: "Select wallpaper"
-                anchors.verticalCenter: parent.verticalCenter
-                color: Matugen.on_surface
-                font.pixelSize: 17
-                font.bold: true
+    onClicked: {
+        root.pageStack.push(wallpaperView);
+    }
+
+    Component {
+        id: wallpaperView
+        Column {
+            spacing: root.gridSpacing
+
+            Row {
+                id: header
+                width: parent.width
+                height: 28
+                spacing: 8
+                Text {
+                    text: "Select wallpaper"
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: Matugen.on_surface
+                    font.pixelSize: 17
+                    font.bold: true
+                }
+                Text {
+                    text: root.wallpapers.length + " images"
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: Matugen.on_surface_variant
+                    font.pixelSize: 11
+                }
             }
-            Text {
-                text: root.wallpapers.length + " images"
-                anchors.verticalCenter: parent.verticalCenter
-                color: Matugen.on_surface_variant
-                font.pixelSize: 11
-            }
-        }
 
-        GridView {
-            id: grid
-            width: parent.width
-            height: parent.height - header.height - parent.spacing
-            clip: true
-            focus: true
-            interactive: true
-            boundsBehavior: Flickable.StopAtBounds
-            model: root.wallpapers
-            cellWidth: width / root.columnCount
-            cellHeight: root.cardHeight + root.gridSpacing
-            delegate: Item {
-                required property string modelData
-                required property int index
+            GridView {
+                id: grid
+                width: parent.width
+                height: parent.height - header.height - parent.spacing
+                clip: true
+                focus: true
+                interactive: true
+                boundsBehavior: Flickable.StopAtBounds
+                model: root.wallpapers
+                cellWidth: width / root.columnCount
+                cellHeight: root.cardHeight + root.gridSpacing
+                delegate: Item {
+                    required property string modelData
+                    required property int index
 
-                width: grid.cellWidth - root.gridSpacing
-                height: root.cardHeight
+                    width: grid.cellWidth - root.gridSpacing
+                    height: root.cardHeight
 
-                Image {
-                    id: thumbnail
-                    anchors.fill: parent
-                    source: root.imageUrl(modelData)
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                    cache: false
-                    smooth: true
-                    visible: false
-                    sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
-                }
-
-                // Rounded, opaque mask.
-                Rectangle {
-                    id: thumbnailMask
-                    anchors.fill: thumbnail
-                    radius: 9
-                    color: "white"
-                    visible: false
-                    layer.enabled: true
-                }
-
-                // Render the image through the rounded mask.
-                MultiEffect {
-                    anchors.fill: thumbnail
-                    source: thumbnail
-                    maskEnabled: true
-                    maskSource: thumbnailMask
-                }
-
-                // Selection border, rendered above the image.
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 9
-                    color: "transparent"
-                    border.width: grid.currentIndex === index ? 2 : 1
-                    border.color: grid.currentIndex === index ? Matugen.primary : "transparent"
-                    Behavior on border.color {
-                        ColorAnimation {
-                            duration: Globals.animationTime
-                            easing.type: Easing.InOutCubic
-                        }
-                    }
-
-                    MouseArea {
+                    Image {
+                        id: thumbnail
                         anchors.fill: parent
-                        hoverEnabled: true
+                        source: root.imageUrl(modelData)
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        cache: true
+                        smooth: true
+                        visible: false
+                        sourceSize: Qt.size(Math.ceil(width * 2), Math.ceil(height * 2))
+                    }
 
-                        onEntered: grid.currentIndex = index
+                    // Rounded, opaque mask.
+                    Rectangle {
+                        id: thumbnailMask
+                        anchors.fill: thumbnail
+                        radius: 9
+                        color: "white"
+                        visible: false
+                        layer.enabled: true
+                    }
 
-                        onClicked: {
-                            grid.currentIndex = index;
-                            grid.forceActiveFocus();
-                            root.select(index);
+                    // Render the image through the rounded mask.
+                    MultiEffect {
+                        anchors.fill: thumbnail
+                        source: thumbnail
+                        maskEnabled: true
+                        maskSource: thumbnailMask
+                    }
+
+                    // Selection border, rendered above the image.
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 9
+                        color: "transparent"
+                        border.width: grid.currentIndex === index ? 2 : 1
+                        border.color: grid.currentIndex === index ? Matugen.primary : "transparent"
+                        Behavior on border.color {
+                            ColorAnimation {
+                                duration: Globals.animationTime
+                                easing.type: Easing.InOutCubic
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+
+                            onEntered: grid.currentIndex = index
+
+                            onClicked: {
+                                grid.currentIndex = index;
+                                grid.forceActiveFocus();
+                                root.select(index);
+                            }
                         }
                     }
                 }
+
+                Keys.onPressed: event => {
+                    const count = root.wallpapers.length;
+                    if (event.key === Qt.Key_Escape) {
+                        event.accepted = true;
+                        root.pageStack.pop();
+                        return;
+                    }
+                    if (!count)
+                        return;
+
+                    let next = grid.currentIndex < 0 ? 0 : grid.currentIndex;
+                    let handled = true;
+                    switch (event.key) {
+                    case Qt.Key_Left:
+                        next--;
+                        break;
+                    case Qt.Key_Right:
+                        next++;
+                        break;
+                    case Qt.Key_Up:
+                        next -= root.columnCount;
+                        break;
+                    case Qt.Key_Down:
+                        next += root.columnCount;
+                        break;
+                    case Qt.Key_Home:
+                        next = 0;
+                        break;
+                    case Qt.Key_End:
+                        next = count - 1;
+                        break;
+                    case Qt.Key_PageUp:
+                        next -= root.columnCount * Math.max(1, Math.floor(grid.height / grid.cellHeight));
+                        break;
+                    case Qt.Key_PageDown:
+                        next += root.columnCount * Math.max(1, Math.floor(grid.height / grid.cellHeight));
+                        break;
+                    case Qt.Key_Return:
+                    case Qt.Key_Enter:
+                    case Qt.Key_Space:
+                        event.accepted = true;
+                        root.select(next);
+                        return;
+                    default:
+                        handled = false;
+                        break;
+                    }
+                    if (!handled)
+                        return;
+                    event.accepted = true;
+                    next = Math.max(0, Math.min(count - 1, next));
+                    grid.currentIndex = next;
+                    grid.positionViewAtIndex(next, GridView.Contain);
+                }
             }
-
-            Keys.onPressed: event => {
-                const count = root.wallpapers.length;
-                if (event.key === Qt.Key_Escape) {
-                    event.accepted = true;
-                    root.backRequested();
-                    return;
-                }
-                if (!count)
-                    return;
-
-                let next = grid.currentIndex < 0 ? 0 : grid.currentIndex;
-                let handled = true;
-                switch (event.key) {
-                case Qt.Key_Left:
-                    next--;
-                    break;
-                case Qt.Key_Right:
-                    next++;
-                    break;
-                case Qt.Key_Up:
-                    next -= root.columnCount;
-                    break;
-                case Qt.Key_Down:
-                    next += root.columnCount;
-                    break;
-                case Qt.Key_Home:
-                    next = 0;
-                    break;
-                case Qt.Key_End:
-                    next = count - 1;
-                    break;
-                case Qt.Key_PageUp:
-                    next -= root.columnCount * Math.max(1, Math.floor(grid.height / grid.cellHeight));
-                    break;
-                case Qt.Key_PageDown:
-                    next += root.columnCount * Math.max(1, Math.floor(grid.height / grid.cellHeight));
-                    break;
-                case Qt.Key_Return:
-                case Qt.Key_Enter:
-                case Qt.Key_Space:
-                    event.accepted = true;
-                    root.select(next);
-                    return;
-                default:
-                    handled = false;
-                    break;
-                }
-                if (!handled)
-                    return;
-                event.accepted = true;
-                next = Math.max(0, Math.min(count - 1, next));
-                grid.currentIndex = next;
-                grid.positionViewAtIndex(next, GridView.Contain);
+            Component.onCompleted: {
+                root.grid = grid;
             }
         }
     }
