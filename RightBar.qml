@@ -17,7 +17,7 @@ Slide {
     Loader {
         anchors.fill: parent
 
-        active: root.expanded || root.preparing
+        active: !root.fullyHidden || root.expanded || root.preparing
 
         sourceComponent: Component {
             Item {
@@ -72,6 +72,98 @@ Slide {
                             Battery {}
                             NetworkControl {
                                 pageStack: stack
+                            }
+                        }
+                        Item {
+                            Layout.fillWidth: true
+                            height: sessionButtons.implicitHeight
+                            RowLayout {
+                                id: sessionButtons
+                                anchors.centerIn: parent
+                                opacity: opened ? 1 : 0
+                                visible: opacity != 0
+                                property bool opened: !sessionConfirm.opened
+                                IconButton {
+                                    icon: "system-shutdown-symbolic"
+                                    iconSize: 40
+                                    tooltip: "Shutdown"
+                                    onClicked: {
+                                        sessionConfirmText.text = "Shutdown?";
+                                        sessionConfirm.opened = true;
+                                        sessionConfirm.command = "systemctl poweroff";
+                                    }
+                                }
+                                IconButton {
+                                    icon: "system-reboot-symbolic"
+                                    iconSize: 40
+                                    tooltip: "Reboot"
+                                    onClicked: {
+                                        sessionConfirmText.text = "Reboot?";
+                                        sessionConfirm.opened = true;
+                                        sessionConfirm.command = "systemctl reboot";
+                                    }
+                                }
+                                IconButton {
+                                    icon: "system-log-out-symbolic"
+                                    iconSize: 40
+                                    tooltip: "Logout"
+                                    onClicked: {
+                                        sessionConfirmText.text = "Logout?";
+                                        sessionConfirm.opened = true;
+                                        sessionConfirm.command = "hyprshutdown";
+                                    }
+                                }
+                                IconButton {
+                                    icon: "system-suspend-symbolic"
+                                    iconSize: 40
+                                    command: "hyprlock & disown;sleep 0.5;systemctl suspend"
+                                    tooltip: "Sleep"
+                                }
+                                IconButton {
+                                    icon: "system-lock-screen-symbolic"
+                                    iconSize: 40
+                                    command: "hyprlock & disown"
+                                    tooltip: "Lock screen"
+                                }
+                                Behavior on opacity {
+                                    NumberAnimation {
+                                        duration: Globals.animationTime
+                                        easing.type: Easing.InOutCubic
+                                    }
+                                }
+                            }
+                            RowLayout {
+                                id: sessionConfirm
+                                anchors.centerIn: parent
+                                opacity: opened ? 1 : 0
+                                visible: opacity != 0
+                                property bool opened: false
+                                property string command: ""
+                                Behavior on opacity {
+                                    NumberAnimation {
+                                        duration: Globals.animationTime
+                                        easing.type: Easing.InOutCubic
+                                    }
+                                }
+                                Text {
+                                    id: sessionConfirmText
+                                    color: Matugen.on_background
+                                }
+                                IconButton {
+                                    command: sessionConfirm.command
+                                    tooltip: "Confirm"
+                                    icon: "dialog-ok"
+                                    onClicked: {
+                                        sessionConfirm.opened = false;
+                                    }
+                                }
+                                IconButton {
+                                    icon: "dialog-cancel"
+                                    tooltip: "Cancel"
+                                    onClicked: {
+                                        sessionConfirm.opened = false;
+                                    }
+                                }
                             }
                         }
                     }

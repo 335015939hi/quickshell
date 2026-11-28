@@ -21,6 +21,7 @@ PanelWindow {
     property int hideDelay: Globals.animationTime
     property bool expanded: false
     property bool suspendAutoHide: false
+    property bool fullyHidden: true
 
     property color background: "#ffffff"
 
@@ -73,6 +74,7 @@ PanelWindow {
             ScriptAction {
                 script: {
                     if (!root.expanded) {
+                        root.fullyHidden = true;
                         root.onHide();
                     }
                 }
@@ -89,6 +91,7 @@ PanelWindow {
             ScriptAction {
                 script: {
                     if (!root.expanded) {
+                        root.fullyHidden = true;
                         root.onHide();
                     }
                 }
@@ -105,6 +108,7 @@ PanelWindow {
             ScriptAction {
                 script: {
                     if (!root.expanded) {
+                        root.fullyHidden = true;
                         root.onHide();
                     }
                 }
@@ -121,6 +125,7 @@ PanelWindow {
             ScriptAction {
                 script: {
                     if (!root.expanded) {
+                        root.fullyHidden = true;
                         root.onHide();
                     }
                 }
@@ -177,6 +182,7 @@ PanelWindow {
         id: showTimer
         interval: root.showDelay
         onTriggered: {
+            root.fullyHidden = false;
             root.expanded = true;
             root.onShow();
         }
