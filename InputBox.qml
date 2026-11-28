@@ -9,6 +9,7 @@ Row {
     property string label: ""
     property string placeholderText: ""
     property string icon: ""
+    property alias echoMode: editor.echoMode
 
     // Input appearance.
     property color textColor: Matugen.on_surface
@@ -17,11 +18,9 @@ Row {
     property color borderColor: Matugen.primary
     property color focusedBorderColor: Matugen.primary
 
-    property int fontPixelSize: 14
-    property int inputHeight: 34
     property int horizontalPadding: 8
-    property int iconSize: 20
-    property int cornerRadius: inputHeight / 3
+    property int iconSize: height / 2
+    property int cornerRadius: height / 3
 
     // Keep the old "value" API and expose the editor for focus/cursor control.
     property alias value: editor.text
@@ -30,13 +29,13 @@ Row {
     property alias readOnly: editor.readOnly
     property alias selectByMouse: editor.selectByMouse
 
+    property int fontPixelSize: height - 2 * horizontalPadding
+
     signal edited(string value)
     signal accepted
     signal keyPressed(var event)
 
-    height: inputHeight
-
-    width: parent ? parent.width : ((labelText.visible ? labelText.implicitWidth + spacing : 0) + 240)
+    //width: parent ? parent.width : ((labelText.visible ? labelText.implicitWidth + spacing : 0) + 240)
     spacing: 8
 
     Text {
@@ -48,13 +47,14 @@ Row {
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
         anchors.verticalCenter: parent.verticalCenter
+        font.pixelSize: root.fontPixelSize
     }
 
     Rectangle {
         id: field
 
         width: Math.max(0, root.width - (labelText.visible ? labelText.implicitWidth + root.spacing : 0))
-        height: root.inputHeight
+        height: root.height
         radius: root.cornerRadius
         color: root.backgroundColor
         border.width: 1
