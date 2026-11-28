@@ -17,6 +17,49 @@ ScrollView {
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
+    readonly property bool hasWifiDevice: Networking.devices.values.some(
+        device => device.type === DeviceType.Wifi
+    )
+
+    function setWifiScanning(enabled) {
+        const shouldScan = enabled && Networking.wifiEnabled && root.visible;
+        for (const device of Networking.devices.values) {
+            if (device.type === DeviceType.Wifi)
+                device.scannerEnabled = shouldScan;
+        }
+    }
+
+    function scanWifiDevices() {
+        if (!Networking.wifiEnabled)
+            return;
+
+        // Restart the scanner so the refresh button requests a fresh scan.
+        for (const device of Networking.devices.values) {
+            if (device.type === DeviceType.Wifi)
+                device.scannerEnabled = false;
+        }
+        wifiScanRestartTimer.restart();
+    }
+
+    onVisibleChanged: setWifiScanning(visible)
+    Component.onCompleted: setWifiScanning(visible)
+    Component.onDestruction: setWifiScanning(false)
+
+    Timer {
+        id: wifiScanRestartTimer
+        interval: 250
+        repeat: false
+        onTriggered: root.setWifiScanning(true)
+    }
+
+    Connections {
+        target: Networking
+
+        function onWifiEnabledChanged() {
+            root.setWifiScanning(root.visible);
+        }
+    }
+
     ColumnLayout {
         id: controls
         width: root.availableWidth
@@ -96,31 +139,125 @@ ScrollView {
             implicitHeight: wifiToggleSwitch.checked ? wifiNetworksView.implicitHeight : 0
             color: "transparent"
             clip: true
+
             ColumnLayout {
                 id: wifiNetworksView
                 width: parent.width
                 spacing: controls.spacing
+
                 RowLayout {
                     Text {
                         text: "WiFi Networks"
                         Layout.alignment: Qt.AlignVCenter
+                        Layout.fillWidth: true
                         color: Matugen.on_surface
                     }
+
                     IconButton {
                         icon: "view-refresh"
                         tooltip: "Re-scan WiFi networks"
+                        enabled: wifiToggleSwitch.checked && root.hasWifiDevice
+                        onClicked: root.scanWifiDevices()
                     }
                 }
+
                 Rectangle {
                     width: parent.width
                     height: 1
                     color: Matugen.primary
                     Layout.alignment: Qt.AlignHCenter
                 }
-                Item {
-                    implicitHeight: controls.spacing
+
+                Repeater {
+                    model: Networking.devices
+
+                    delegate: ColumnLayout {
+                        required property var modelData
+
+                        visible: modelData.type === DeviceType.Wifi
+                        Layout.fillWidth: true
+                        spacing: 4
+
+                        Component.onCompleted: {
+                            if (modelData.type === DeviceType.Wifi)
+                                modelData.scannerEnabled = root.visible && Networking.wifiEnabled;
+                        }
+
+                        Text {
+                            text: modelData.name
+                            color: Matugen.on_surface_variant
+                            font.pixelSize: 11
+                        }
+
+                        ListView {
+                            id: wifiNetworksList
+
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: Math.min(Math.max(contentHeight, 36), 180)
+                            clip: true
+                            spacing: 2
+                            model: modelData.type === DeviceType.Wifi ? modelData.networks : null
+
+                            delegate: HoverArea {
+                                required property var modelData
+
+                                width: wifiNetworksList.width
+                                implicitHeight: 42
+                                hoverColor: Matugen.primary_a
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 8
+                                    anchors.rightMargin: 8
+                                    spacing: 8
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 1
+
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: modelData.name.length > 0 ? modelData.name : "Hidden network"
+                                            color: Matugen.on_surface
+                                            font.pixelSize: 12
+                                            elide: Text.ElideRight
+                                        }
+
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: WifiSecurityType.toString(modelData.security)
+                                                  + " · " + Math.round(modelData.signalStrength * 100) + "%"
+                                                  + (modelData.known ? " · Saved" : "")
+                                                  + (modelData.connected ? " · Connected" : "")
+                                            color: Matugen.on_surface_variant
+                                            font.pixelSize: 10
+                                            elide: Text.ElideRight
+                                        }
+                                    }
+                                }
+                            }
+
+                            Text {
+                                anchors.fill: parent
+                                visible: wifiNetworksList.count === 0
+                                text: modelData.scannerEnabled ? "Scanning for networks…" : "No networks found"
+                                color: Matugen.on_surface_variant
+                                font.pixelSize: 11
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                        }
+                    }
+                }
+
+                Text {
+                    visible: wifiToggleSwitch.checked && !root.hasWifiDevice
+                    text: "No Wi-Fi adapter found"
+                    color: Matugen.on_surface_variant
+                    font.pixelSize: 11
                 }
             }
+
             Behavior on implicitHeight {
                 NumberAnimation {
                     duration: Globals.animationTime
