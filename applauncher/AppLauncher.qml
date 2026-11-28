@@ -201,7 +201,8 @@ PanelWindow {
                 label: ""
                 icon: "system-search"
                 placeholderText: "Search applications..."
-                height: 56
+                inputHeight: 56
+                fontPixelSize: 18
                 iconSize: 22
                 horizontalPadding: 16
                 cornerRadius: 15

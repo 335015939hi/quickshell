@@ -17,6 +17,49 @@ ScrollView {
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
+    readonly property bool hasWifiDevice: Networking.devices.values.some(
+        device => device.type === DeviceType.Wifi
+    )
+
+    function setWifiScanning(enabled) {
+        const shouldScan = enabled && Networking.wifiEnabled && root.visible;
+        for (const device of Networking.devices.values) {
+            if (device.type === DeviceType.Wifi)
+                device.scannerEnabled = shouldScan;
+        }
+    }
+
+    function scanWifiDevices() {
+        if (!Networking.wifiEnabled)
+            return;
+
+        // Restart the scanner so the refresh button requests a fresh scan.
+        for (const device of Networking.devices.values) {
+            if (device.type === DeviceType.Wifi)
+                device.scannerEnabled = false;
+        }
+        wifiScanRestartTimer.restart();
+    }
+
+    onVisibleChanged: setWifiScanning(visible)
+    Component.onCompleted: setWifiScanning(visible)
+    Component.onDestruction: setWifiScanning(false)
+
+    Timer {
+        id: wifiScanRestartTimer
+        interval: 250
+        repeat: false
+        onTriggered: root.setWifiScanning(true)
+    }
+
+    Connections {
+        target: Networking
+
+        function onWifiEnabledChanged() {
+            root.setWifiScanning(root.visible);
+        }
+    }
+
     ColumnLayout {
         id: controls
         width: root.availableWidth
@@ -41,7 +84,6 @@ ScrollView {
                     disabled: !Networking.wifiHardwareEnabled
                     onCheck: function () {
                         Networking.wifiEnabled = !Networking.wifiEnabled;
-                        nmcliRescanWifi.running = true;
                     }
                     Layout.alignment: Qt.AlignRight
                 }
@@ -107,17 +149,15 @@ ScrollView {
                     Text {
                         text: "WiFi Networks"
                         Layout.alignment: Qt.AlignVCenter
+                        Layout.fillWidth: true
                         color: Matugen.on_surface
                     }
 
                     IconButton {
-                        id: wifiRescanButton
                         icon: "view-refresh"
                         tooltip: "Re-scan WiFi networks"
-                        enabled: wifiToggleSwitch.checked
-                        onClicked: {
-                            nmcliRescanWifi.running = true;
-                        }
+                        enabled: wifiToggleSwitch.checked && root.hasWifiDevice
+                        onClicked: root.scanWifiDevices()
                     }
                 }
 
@@ -129,36 +169,47 @@ ScrollView {
                 }
 
                 Repeater {
-                    id: wifiNetworksListRoot
                     model: Networking.devices
-                    property string passwordInputFor: ""
 
-                    Repeater {
-                        id: wifiNetworksList
+                    delegate: ColumnLayout {
+                        required property var modelData
 
-                        model: modelData.type === DeviceType.Wifi ? modelData.networks : null
+                        visible: modelData.type === DeviceType.Wifi
+                        Layout.fillWidth: true
+                        spacing: 4
 
-                        delegate: HoverArea {
-                            id: wifiNetworksListRowArea
-                            required property var modelData
+                        Component.onCompleted: {
+                            if (modelData.type === DeviceType.Wifi)
+                                modelData.scannerEnabled = root.visible && Networking.wifiEnabled;
+                        }
 
-                            implicitWidth: controls.width
-                            implicitHeight: wifiNetworksListRow.implicitHeight + 2 * controls.spacing
-                            hoverColor: Matugen.primary_a
+                        Text {
+                            text: modelData.name
+                            color: Matugen.on_surface_variant
+                            font.pixelSize: 11
+                        }
 
-                            ColumnLayout {
-                                id: wifiNetworksListRow
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width
+                        ListView {
+                            id: wifiNetworksList
+
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: Math.min(Math.max(contentHeight, 36), 180)
+                            clip: true
+                            spacing: 2
+                            model: modelData.type === DeviceType.Wifi ? modelData.networks : null
+
+                            delegate: HoverArea {
+                                required property var modelData
+
+                                width: wifiNetworksList.width
+                                implicitHeight: 42
+                                hoverColor: Matugen.primary_a
+
                                 RowLayout {
-                                    id: wifiNetworksListRowNoPassword
-                                    Image {
-                                        source: Quickshell.iconPath(Globals.getWifiSignalIcon(modelData.signalStrength))
-                                        sourceSize: Qt.size(24, 24)
-                                        width: 24
-                                        height: 24
-                                        fillMode: Image.PreserveAspectFit
-                                    }
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 8
+                                    anchors.rightMargin: 8
+                                    spacing: 8
 
                                     ColumnLayout {
                                         Layout.fillWidth: true
@@ -166,11 +217,7 @@ ScrollView {
 
                                         Text {
                                             Layout.fillWidth: true
-                                            text: {
-                                                x = modelData.name.length > 0 ? modelData.name : "<Hidden network>";
-                                                console.log(x);
-                                                return x;
-                                            }
+                                            text: modelData.name.length > 0 ? modelData.name : "Hidden network"
                                             color: Matugen.on_surface
                                             font.pixelSize: 12
                                             elide: Text.ElideRight
@@ -178,52 +225,36 @@ ScrollView {
 
                                         Text {
                                             Layout.fillWidth: true
-                                            text: WifiSecurityType.toString(modelData.security) + " · " + Math.round(modelData.signalStrength * 100) + "%" + (modelData.known ? " · Saved" : "") + (modelData.connected ? " · Connected" : "")
+                                            text: WifiSecurityType.toString(modelData.security)
+                                                  + " · " + Math.round(modelData.signalStrength * 100) + "%"
+                                                  + (modelData.known ? " · Saved" : "")
+                                                  + (modelData.connected ? " · Connected" : "")
                                             color: Matugen.on_surface_variant
                                             font.pixelSize: 10
                                             elide: Text.ElideRight
                                         }
                                     }
                                 }
-                                Rectangle {
-                                    width: parent.width
-                                    implicitHeight: wifiNetworksListRoot.passwordInputFor == modelData.name ? wifiPasswordRow.implicitHeight : 0
-                                    color: "transparent"
-                                    clip: true
-                                    RowLayout {
-                                        id: wifiPasswordRow
-                                        property bool showingPassword
-                                        width: parent.width
-                                        IconButton {
-                                            id: wifiPasswordRowSeeIcon
-                                            icon: wifiPasswordRow.showingPassword ? "password-show-off" : "password-show-on"
-                                            iconSize: 16
-                                        }
-                                        /*Item {
-                                            width: parent.width - 2 * (wifiPasswordRowSeeIcon.width)
-                                            Layout.preferredHeight: 16
-                                            InputBox {}
-                                          }*/
-                                    }
-                                    Behavior on implicitHeight {
-                                        NumberAnimation {
-                                            duration: Globals.animationTime
-                                            easing.type: Easing.InOutCubic
-                                        }
-                                    }
-                                }
                             }
-                            onClicked: {
-                                if (wifiNetworksListRoot.passwordInputFor == modelData.name) {
-                                    wifiNetworksListRoot.passwordInputFor = "";
-                                    return;
-                                }
-                                if (modelData.security != 0) {
-                                    wifiNetworksListRoot.passwordInputFor = modelData.name;
-                                }
+
+                            Text {
+                                anchors.fill: parent
+                                visible: wifiNetworksList.count === 0
+                                text: modelData.scannerEnabled ? "Scanning for networks…" : "No networks found"
+                                color: Matugen.on_surface_variant
+                                font.pixelSize: 11
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
                             }
                         }
                     }
+                }
+
+                Text {
+                    visible: wifiToggleSwitch.checked && !root.hasWifiDevice
+                    text: "No Wi-Fi adapter found"
+                    color: Matugen.on_surface_variant
+                    font.pixelSize: 11
                 }
             }
 
@@ -371,10 +402,5 @@ ScrollView {
                 }
             }
         }
-    }
-    Process {
-        id: nmcliRescanWifi
-        running: false
-        command: ["nmcli", "device", "wifi", "rescan"]
     }
 }
