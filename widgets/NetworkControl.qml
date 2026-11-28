@@ -147,12 +147,12 @@ ScrollView {
                     Text {
                         text: "WiFi Networks"
                         Layout.alignment: Qt.AlignVCenter
-                        Layout.fillWidth: true
                         color: Matugen.on_surface
                     }
 
                     IconButton {
                         icon: "view-refresh"
+                        Layout.alignment: Qt.AlignRight
                         tooltip: "Re-scan WiFi networks"
                         enabled: wifiToggleSwitch.checked && root.hasWifiDevice
                         onClicked: root.scanWifiDevices()
