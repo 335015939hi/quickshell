@@ -133,93 +133,117 @@ ScrollView {
                     model: Networking.devices
                     property string passwordInputFor: ""
 
-                    Repeater {
-                        id: wifiNetworksList
+                    delegate: ColumnLayout {
+                        required property var modelData
+                        readonly property var wifiDevice: modelData
 
-                        model: modelData.type === DeviceType.Wifi ? modelData.networks : null
+                        Layout.fillWidth: true
+                        visible: wifiDevice.type === DeviceType.Wifi
+                        spacing: controls.spacing
 
-                        delegate: HoverArea {
-                            id: wifiNetworksListRowArea
-                            required property var modelData
+                        Repeater {
+                            id: wifiNetworksList
 
-                            implicitWidth: controls.width
-                            implicitHeight: wifiNetworksListRow.implicitHeight + 2 * controls.spacing
-                            hoverColor: Matugen.primary_a
+                            model: wifiDevice.type === DeviceType.Wifi
+                                   ? wifiDevice.networks
+                                   : null
 
-                            ColumnLayout {
-                                id: wifiNetworksListRow
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width
-                                RowLayout {
-                                    id: wifiNetworksListRowNoPassword
-                                    Image {
-                                        source: Quickshell.iconPath(Globals.getWifiSignalIcon(modelData.signalStrength))
-                                        sourceSize: Qt.size(24, 24)
-                                        width: 24
-                                        height: 24
-                                        fillMode: Image.PreserveAspectFit
-                                    }
+                            delegate: HoverArea {
+                                id: wifiNetworksListRowArea
+                                required property var modelData
 
-                                    ColumnLayout {
-                                        Layout.fillWidth: true
-                                        spacing: 1
+                                Layout.fillWidth: true
+                                implicitHeight: wifiNetworksListRow.implicitHeight + 2 * controls.spacing
+                                hoverColor: Matugen.primary_a
 
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: {
-                                                x = modelData.name.length > 0 ? modelData.name : "<Hidden network>";
-                                                console.log(x);
-                                                return x;
-                                            }
-                                            color: Matugen.on_surface
-                                            font.pixelSize: 12
-                                            elide: Text.ElideRight
-                                        }
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: WifiSecurityType.toString(modelData.security) + " · " + Math.round(modelData.signalStrength * 100) + "%" + (modelData.known ? " · Saved" : "") + (modelData.connected ? " · Connected" : "")
-                                            color: Matugen.on_surface_variant
-                                            font.pixelSize: 10
-                                            elide: Text.ElideRight
-                                        }
-                                    }
-                                }
-                                Rectangle {
+                                ColumnLayout {
+                                    id: wifiNetworksListRow
+                                    anchors.verticalCenter: parent.verticalCenter
                                     width: parent.width
-                                    implicitHeight: wifiNetworksListRoot.passwordInputFor == modelData.name ? wifiPasswordRow.implicitHeight : 0
-                                    color: "transparent"
-                                    clip: true
+
                                     RowLayout {
-                                        id: wifiPasswordRow
-                                        property bool showingPassword
+                                        id: wifiNetworksListRowNoPassword
+
+                                        Image {
+                                            source: Quickshell.iconPath(Globals.getWifiSignalIcon(modelData.signalStrength))
+                                            sourceSize: Qt.size(24, 24)
+                                            width: 24
+                                            height: 24
+                                            fillMode: Image.PreserveAspectFit
+                                        }
+
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 1
+
+                                            Text {
+                                                Layout.fillWidth: true
+                                                text: modelData.name.length > 0
+                                                      ? modelData.name
+                                                      : "Hidden network"
+                                                color: Matugen.on_surface
+                                                font.pixelSize: 12
+                                                elide: Text.ElideRight
+                                            }
+
+                                            Text {
+                                                Layout.fillWidth: true
+                                                text: WifiSecurityType.toString(modelData.security)
+                                                      + " · " + Math.round(modelData.signalStrength * 100) + "%"
+                                                      + (modelData.known ? " · Saved" : "")
+                                                      + (modelData.connected ? " · Connected" : "")
+                                                color: Matugen.on_surface_variant
+                                                font.pixelSize: 10
+                                                elide: Text.ElideRight
+                                            }
+                                        }
+                                    }
+
+                                    Rectangle {
                                         width: parent.width
-                                        IconButton {
-                                            id: wifiPasswordRowSeeIcon
-                                            icon: wifiPasswordRow.showingPassword ? "password-show-off" : "password-show-on"
-                                            iconSize: 16
+                                        implicitHeight: wifiNetworksListRoot.passwordInputFor == modelData.name
+                                                        ? wifiPasswordRow.implicitHeight
+                                                        : 0
+                                        color: "transparent"
+                                        clip: true
+
+                                        RowLayout {
+                                            id: wifiPasswordRow
+                                            property bool showingPassword
+                                            width: parent.width
+
+                                            IconButton {
+                                                id: wifiPasswordRowSeeIcon
+                                                icon: wifiPasswordRow.showingPassword
+                                                      ? "password-show-off"
+                                                      : "password-show-on"
+                                                iconSize: 16
+                                            }
+
+                                            /*Item {
+                                                width: parent.width - 2 * (wifiPasswordRowSeeIcon.width)
+                                                Layout.preferredHeight: 16
+                                                InputBox {}
+                                            }*/
                                         }
-                                        /*Item {
-                                            width: parent.width - 2 * (wifiPasswordRowSeeIcon.width)
-                                            Layout.preferredHeight: 16
-                                            InputBox {}
-                                          }*/
-                                    }
-                                    Behavior on implicitHeight {
-                                        NumberAnimation {
-                                            duration: Globals.animationTime
-                                            easing.type: Easing.InOutCubic
+
+                                        Behavior on implicitHeight {
+                                            NumberAnimation {
+                                                duration: Globals.animationTime
+                                                easing.type: Easing.InOutCubic
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            onClicked: {
-                                if (wifiNetworksListRoot.passwordInputFor == modelData.name) {
-                                    wifiNetworksListRoot.passwordInputFor = "";
-                                    return;
-                                }
-                                if (modelData.security != 0) {
-                                    wifiNetworksListRoot.passwordInputFor = modelData.name;
+
+                                onClicked: {
+                                    if (wifiNetworksListRoot.passwordInputFor == modelData.name) {
+                                        wifiNetworksListRoot.passwordInputFor = "";
+                                        return;
+                                    }
+
+                                    if (modelData.security != 0)
+                                        wifiNetworksListRoot.passwordInputFor = modelData.name;
                                 }
                             }
                         }
