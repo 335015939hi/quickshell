@@ -429,7 +429,7 @@ ScrollView {
                 if (!root.wifiScanPending)
                     return;
 
-                const fields = this.text.trim().split(/\\s+/);
+                const fields = this.text.trim().split(/\s+/);
                 const timestamp = Number(fields[fields.length - 1]);
                 if (!Number.isFinite(timestamp)) {
                     console.warn("Could not read NetworkManager LastScan timestamp:", this.text);
@@ -473,7 +473,7 @@ ScrollView {
                 if (!root.wifiScanPending)
                     return;
 
-                const fields = this.text.trim().split(/\\s+/);
+                const fields = this.text.trim().split(/\s+/);
                 const timestamp = Number(fields[fields.length - 1]);
                 if (!Number.isFinite(timestamp)) {
                     console.warn("Could not read NetworkManager LastScan timestamp:", this.text);
