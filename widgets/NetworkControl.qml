@@ -17,9 +17,7 @@ ScrollView {
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-    readonly property bool hasWifiDevice: Networking.devices.values.some(
-        device => device.type === DeviceType.Wifi
-    )
+    readonly property bool hasWifiDevice: Networking.devices.values.some(device => device.type === DeviceType.Wifi)
 
     function setWifiScanning(enabled) {
         const shouldScan = enabled && Networking.wifiEnabled && root.visible;
@@ -171,90 +169,59 @@ ScrollView {
                 Repeater {
                     model: Networking.devices
 
-                    delegate: ColumnLayout {
-                        required property var modelData
+                    delegate: ListView {
+                        id: wifiNetworksList
 
-                        visible: modelData.type === DeviceType.Wifi
-                        Layout.fillWidth: true
-                        spacing: 4
+                        width: parent.width
+                        Layout.preferredHeight: contentHeight
+                        clip: true
+                        spacing: 2
+                        model: modelData.type === DeviceType.Wifi ? modelData.networks : null
 
-                        Component.onCompleted: {
-                            if (modelData.type === DeviceType.Wifi)
-                                modelData.scannerEnabled = root.visible && Networking.wifiEnabled;
-                        }
+                        delegate: HoverArea {
+                            required property var modelData
 
-                        Text {
-                            text: modelData.name
-                            color: Matugen.on_surface_variant
-                            font.pixelSize: 11
-                        }
+                            implicitWidth: controls.width
+                            implicitHeight: wifiNetworksListRow.implicitHeight + 2 * controls.spacing
+                            hoverColor: Matugen.primary_a
 
-                        ListView {
-                            id: wifiNetworksList
+                            RowLayout {
+                                id: wifiNetworksListRow
+                                anchors.fill: parent
+                                anchors.leftMargin: 8
+                                anchors.rightMargin: 8
+                                spacing: 8
+                                Image {
+                                    source: Quickshell.iconPath(Globals.getWifiSignalIcon(modelData.signalStrength))
+                                    sourceSize: Qt.size(24, 24)
+                                    width: 24
+                                    height: 24
+                                    fillMode: Image.PreserveAspectFit
+                                }
 
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: Math.min(Math.max(contentHeight, 36), 180)
-                            clip: true
-                            spacing: 2
-                            model: modelData.type === DeviceType.Wifi ? modelData.networks : null
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 1
 
-                            delegate: HoverArea {
-                                required property var modelData
-
-                                width: wifiNetworksList.width
-                                implicitHeight: 42
-                                hoverColor: Matugen.primary_a
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 8
-                                    anchors.rightMargin: 8
-                                    spacing: 8
-
-                                    ColumnLayout {
+                                    Text {
                                         Layout.fillWidth: true
-                                        spacing: 1
+                                        text: modelData.name.length > 0 ? modelData.name : "Hidden network"
+                                        color: Matugen.on_surface
+                                        font.pixelSize: 12
+                                        elide: Text.ElideRight
+                                    }
 
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: modelData.name.length > 0 ? modelData.name : "Hidden network"
-                                            color: Matugen.on_surface
-                                            font.pixelSize: 12
-                                            elide: Text.ElideRight
-                                        }
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: WifiSecurityType.toString(modelData.security)
-                                                  + " · " + Math.round(modelData.signalStrength * 100) + "%"
-                                                  + (modelData.known ? " · Saved" : "")
-                                                  + (modelData.connected ? " · Connected" : "")
-                                            color: Matugen.on_surface_variant
-                                            font.pixelSize: 10
-                                            elide: Text.ElideRight
-                                        }
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: WifiSecurityType.toString(modelData.security) + " · " + Math.round(modelData.signalStrength * 100) + "%" + (modelData.known ? " · Saved" : "") + (modelData.connected ? " · Connected" : "")
+                                        color: Matugen.on_surface_variant
+                                        font.pixelSize: 10
+                                        elide: Text.ElideRight
                                     }
                                 }
                             }
-
-                            Text {
-                                anchors.fill: parent
-                                visible: wifiNetworksList.count === 0
-                                text: modelData.scannerEnabled ? "Scanning for networks…" : "No networks found"
-                                color: Matugen.on_surface_variant
-                                font.pixelSize: 11
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
                         }
                     }
-                }
-
-                Text {
-                    visible: wifiToggleSwitch.checked && !root.hasWifiDevice
-                    text: "No Wi-Fi adapter found"
-                    color: Matugen.on_surface_variant
-                    font.pixelSize: 11
                 }
             }
 
@@ -398,7 +365,6 @@ ScrollView {
                     nmcliGetConnectionDetails.running = true;
                 } else {
                     root.nmcliConnectionsList = root.nmcliConnectionsListTemp;
-                    //root.nmcliConnectionsListTemp = null;
                 }
             }
         }
