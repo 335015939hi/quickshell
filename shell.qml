@@ -33,6 +33,7 @@ ShellRoot {
         }
     }
     RightBar {}
+    LeftBar {}
     Wallpaper {}
     AppLauncher {}
     NotificationPopups {
