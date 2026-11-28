@@ -56,10 +56,6 @@ Item {
             if (!screen)
                 return 0;
 
-            // Intentionally read this to make the binding reactive
-            // to window geometry and transform changes.
-            const transform = window.windowTransform;
-
             const y = anchor.mapToGlobal(0, 0).y + anchor.height / 2;
 
             return y > screen.y + screen.height / 2 ? -tip.implicitHeight - root.tooltipOffset : anchor.height + root.tooltipOffset;
@@ -102,6 +98,7 @@ Item {
         interval: root.delay
 
         onTriggered: {
+            root._windowRevision++;
             root._shown = true;
         }
     }
